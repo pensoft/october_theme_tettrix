@@ -1,0 +1,61 @@
+{% if canRegister %}
+    <h2>Create your account</h2>
+
+    {{ form_ajax('onRegister') }}
+        <div class="ui form">
+            <div class="form-error-summary" tabindex="-1"></div>
+            <div class="fields">
+                <div class="field">
+                    <label for="registerName">Full Name <span class="field-required-marker" aria-hidden="true">*</span></label>
+                    <input
+                        name="name"
+                        type="text"
+                        id="registerName"
+                        required
+                        autocomplete="name"
+                        placeholder="Enter your full name" />
+                </div>
+                <div class="field">
+                    <label for="registerEmail">Email <span class="field-required-marker" aria-hidden="true">*</span></label>
+                    <input
+                        name="email"
+                        type="email"
+                        id="registerEmail"
+                        required
+                        autocomplete="email"
+                        placeholder="Enter your email" />
+                </div>
+                {% if loginAttribute == "username" %}
+                    <div class="field">
+                        <label for="registerUsername">Username <span class="field-required-marker" aria-hidden="true">*</span></label>
+                        <input
+                            name="username"
+                            type="text"
+                            id="registerUsername"
+                            required
+                            autocomplete="username"
+                            placeholder="Enter your username" />
+                    </div>
+                {% endif %}
+                <div class="field">
+                    <label for="registerPassword">Password <span class="field-required-marker" aria-hidden="true">*</span></label>
+                    <input
+                        name="password"
+                        type="password"
+                        id="registerPassword"
+                        required
+                        autocomplete="new-password"
+                        placeholder="Choose a password" />
+                </div>
+            </div>
+        </div>
+        <div class="row middle-xs mt-1">
+			<div class="col-xs-12 mb-1 d-flex justify-content-center">            <button type="submit" class="btn btn-primary btn-slide btn-ghost">Register</button>
+			</div>
+			<div class="col-xs-12 d-flex justify-content-center">            <a class="btn btn-link" href="/login">I already have an account</a>
+			</div>
+        </div>
+    {{ form_close() }}
+{% else %}
+    <!-- Registration is disabled. -->
+{% endif %}

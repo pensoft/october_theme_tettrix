@@ -1,0 +1,21 @@
+url = "/publications"
+layout = "default"
+title = "Publications"
+is_hidden = 0
+robot_index = "index"
+robot_follow = "follow"
+
+[LibraryPage]
+templates = "template5"
+has_search = 1
+add_file_name = 1
+no_records_message = "Items will follow soon. Keep posted!"
+redirect_to_download_page = 1
+==
+<h1 class="underline">Publications</h1>
+    <div class="container">
+        {# The hero renders the visible H1; this keeps the order h1 -> h2 -> h3
+           for the record titles the component emits. #}
+        <h2 class="visually-hidden">Publication records</h2>
+        {% component 'LibraryPage' %}
+    </div>

@@ -1,0 +1,80 @@
+<form method="post" data-request="{{__SELF__}}::onSubmit" data-request-files data-request-flash >
+    <input type="hidden" name="_handler" value="onSubmit">
+    {{ form_token() }}
+    {{ form_sessionKey() }}
+    {#
+        role="alert" makes the server-side validation message announce itself
+        as soon as it is rendered; accessibility.js also moves focus here.
+    #}
+    <div id="error_messages" class="form-error-summary{% flash error %} is-visible{% endflash %}" role="alert" tabindex="-1">
+        {% flash error %}
+        <p>{{ message }}</p>
+        {% endflash %}
+    </div>
+    <div class="ui form get_involved_form">
+        <input name="profile" type="hidden" value="1">
+        <div class="row between-md around-xs">
+            <div class="col-md-6 col-xs-12 field">
+                <label for="first_name">Name <span class="field-required-marker" aria-hidden="true">*</span> </label>
+                <input name="first_name" type="text" class="" id="first_name" value="" required autocomplete="name" placeholder="First and Last names">
+            </div>
+
+            <div class="col-md-6 col-xs-12 field">
+                <label for="email">Email address <span class="field-required-marker" aria-hidden="true">*</span></label>
+                <input name="email" type="email" class="" id="email" value="" required autocomplete="email" placeholder="Email address">
+            </div>
+
+            <div class="col-md-6 col-xs-12 field">
+                <label for="affiliation">Affiliation <span class="field-required-marker" aria-hidden="true">*</span> </label>
+                <input name="affiliation" type="text" class="" id="affiliation" value="" required autocomplete="organization" placeholder="Name of institute a representative of">
+            </div>
+
+            <div class="col-md-6 col-xs-12 field">
+                <label for="country">Country <span class="field-required-marker" aria-hidden="true">*</span></label>
+                <input name="country" type="text" class="" id="country" value="" required autocomplete="country-name" placeholder="Country">
+            </div>
+
+            <div class="col-md-6 col-xs-12 field">
+                <label for="main_language">Main language <span class="field-required-marker" aria-hidden="true">*</span> </label>
+                <input name="main_language" type="text" class="" id="main_language" value="" required placeholder="Main language">
+            </div>
+
+            <div class="col-md-6 col-xs-12 field">
+                {# NOTE: this control reuses name="email" - left as-is because
+                   it is a data bug, not an accessibility one. #}
+                <label for="second_language">Second language <span class="field-required-marker" aria-hidden="true">*</span></label>
+                <input name="email" type="text" class="" id="second_language" value="" required placeholder="Second language">
+            </div>
+
+            {# A radio group needs a fieldset/legend: a <label for="interest">
+               pointing at a <div> named nothing at all. #}
+            <div class="row box" id="interest">
+                <div class="col-md-12 col-xs-12 field" id="payment_options_field">
+                    <fieldset class="interest-fieldset">
+                        <legend>Interest in TETTRIX <span class="field-required-marker" aria-hidden="true">*</span></legend>
+                        <label for="interest_1"><input id="interest_1" name="interest[]" type="radio" value="pay_now" required>Ecotoxicological data gaps</label>
+                        <label for="interest_2"><input id="interest_2" name="interest[]" type="radio" value="group_invoice">Co-monitoring scheme for pesticides and pollinators</label>
+                        <label for="interest_3"><input id="interest_3" name="interest[]" type="radio" value="group_invoice">Models for predicting pesticide toxicological effects on pollinators</label>
+                        <label for="interest_4"><input id="interest_4" name="interest[]" type="radio" value="group_invoice">Population-level systems-based approach to risk and policy assessment</label>
+                    </fieldset>
+                </div>
+            </div>
+
+            <div class="col-md-12 col-xs-12 field">
+                <div class="g-recaptcha" id="recaptcha" data-sitekey="{{__SELF__.property('recaptcha_key')}}"></div>
+                <p id="recaptcha-help" class="sr-only">
+                    Complete the reCAPTCHA challenge before submitting. If you cannot,
+                    contact us by email instead.
+                </p>
+            </div>
+
+            <div class="col-md-12 col-xs-12 mt-1 text-center">
+                <button type="submit" class="btn btn-primary" style="min-width: 100px;">Submit</button>
+            </div>
+            <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async defer></script>
+        </div>
+    </div>
+</form>
+
+{% framework extras %}
+{% scripts %}

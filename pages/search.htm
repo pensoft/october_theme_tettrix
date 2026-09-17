@@ -1,0 +1,41 @@
+title = "Search"
+url = "/search"
+layout = "default"
+is_hidden = 0
+robot_index = "index"
+robot_follow = "follow"
+
+[searchResults]
+resultsPerPage = 30
+showProviderBadge = 1
+noResultsMessage = "Your search returned no results."
+visitPageMessage = "Visit page"
+==
+<?php
+function onInit()
+    {
+        //\Event::listen('offline.sitesearch.results', function ($results) {
+        // return $results->filter(...);
+        // return $results->sortByDesc('model.custom_attribute');
+        //});
+    }
+?>
+==
+{#
+    Only one H1: the results heading. The hero in partials/site/header renders
+    a .hero-title here instead of a second H1.
+#}
+<div class="container">
+    <div class="row">
+        <div class="col-xs">
+
+            <h1 class="base_heading">Search results for {{ searchResults.query }}</h1>
+
+            <p class="sr-only" role="status">
+                {{ searchResults.results.count }} results found
+            </p>
+
+            {% component 'searchResults' %}
+        </div>
+    </div>
+</div>

@@ -1,0 +1,186 @@
+/**
+ * TETTRIX theme behaviours.
+ */
+(function () {
+    'use strict';
+
+    /* ------------------------------------------------------------------
+     * Per-letter label roll on .tx-btn
+     *
+     * Ported from the [data-fast-label] treatment in the <style> block of
+     * design/TETTRIX Homepage.dc.html. The canvas hand-authored one <span>
+     * per character and one nth-child delay rule per position (34 of them);
+     * splitting at runtime instead means CMS-entered and translated labels
+     * get the effect too, and the stagger is a single CSS calc().
+     *
+     * The animation itself is pure CSS - see .tx-btn__label--split in
+     * assets/less/components/tettrix.less. All this does is produce the
+     * spans and index them.
+     * ---------------------------------------------------------------- */
+    function prefersReducedMotion() {
+        return window.matchMedia &&
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function splitLabel(label) {
+        if (label.classList.contains('tx-btn__label--split')) {
+            return;
+        }
+
+        var text = label.textContent.replace(/\s+/g, ' ').trim();
+
+        if (!text) {
+            return;
+        }
+
+        var chars = text.split('');
+        var frag = document.createDocumentFragment();
+
+        for (var i = 0; i < chars.length; i++) {
+            var span = document.createElement('span');
+
+            if (chars[i] === ' ') {
+                span.className = 'tx-btn__space';
+                span.appendChild(document.createTextNode(' '));
+            } else {
+                span.appendChild(document.createTextNode(chars[i]));
+            }
+
+            span.style.setProperty('--tx-i', String(i));
+            frag.appendChild(span);
+        }
+
+        label.textContent = '';
+        label.appendChild(frag);
+        label.classList.add('tx-btn__label--split');
+
+        // Some screen readers announce split text one character at a time, so
+        // the letters are hidden and the label is restored as off-screen text.
+        // Without this a button with no aria-label would lose its name.
+        label.setAttribute('aria-hidden', 'true');
+
+        var name = document.createElement('span');
+        name.className = 'sr-only';
+        name.appendChild(document.createTextNode(text));
+        label.parentNode.insertBefore(name, label.nextSibling);
+    }
+
+    function initButtonLabels() {
+        if (prefersReducedMotion()) {
+            return;
+        }
+
+        var labels = document.querySelectorAll('.tx-btn > .tx-btn__label');
+
+        for (var i = 0; i < labels.length; i++) {
+            splitLabel(labels[i]);
+        }
+    }
+
+    /* ------------------------------------------------------------------
+     * Drawers ([data-tx-dialog] -> <dialog class="tx-drawer">)
+     *
+     * The pillar cards open the right-hand detail panel from the canvas.
+     * Built on the native <dialog> so the browser supplies the top layer
+     * (clearing the z-index: 9999 header and the sticky footer), Escape,
+     * the backdrop, the focus trap and inertness for the rest of the page.
+     * What is left to do here: open it, close it on the close button or a
+     * click outside the panel, lock page scroll, and put focus back on the
+     * card that opened it.
+     * ---------------------------------------------------------------- */
+    var OPEN_CLASS = 'tx-dialog-open';
+    var lastTrigger = null;
+
+    function closeDialog(dialog) {
+        if (dialog.open) {
+            dialog.close();
+        }
+    }
+
+    function bindDialog(dialog) {
+        if (dialog.getAttribute('data-tx-dialog-ready')) {
+            return;
+        }
+
+        dialog.setAttribute('data-tx-dialog-ready', '1');
+
+        var closers = dialog.querySelectorAll('[data-tx-dialog-close]');
+
+        for (var i = 0; i < closers.length; i++) {
+            closers[i].addEventListener('click', function () {
+                closeDialog(dialog);
+            });
+        }
+
+        // Click outside the panel. The backdrop is a pseudo-element, so a
+        // click on it still targets the <dialog>; and because the <dialog>
+        // IS the panel here, the only reliable test is geometric.
+        dialog.addEventListener('click', function (event) {
+            var box = dialog.getBoundingClientRect();
+            var inside = event.clientX >= box.left &&
+                event.clientX <= box.right &&
+                event.clientY >= box.top &&
+                event.clientY <= box.bottom;
+
+            if (!inside) {
+                closeDialog(dialog);
+            }
+        });
+
+        // Fires for the close button, Escape and the backdrop alike.
+        dialog.addEventListener('close', function () {
+            document.documentElement.classList.remove(OPEN_CLASS);
+
+            if (lastTrigger) {
+                lastTrigger.focus();
+                lastTrigger = null;
+            }
+        });
+    }
+
+    function initDialogs() {
+        var triggers = document.querySelectorAll('[data-tx-dialog]');
+
+        for (var i = 0; i < triggers.length; i++) {
+            (function (trigger) {
+                if (trigger.getAttribute('data-tx-dialog-ready')) {
+                    return;
+                }
+
+                var dialog = document.getElementById(trigger.getAttribute('data-tx-dialog'));
+
+                // No dialog, or a browser without showModal: leave the
+                // trigger inert rather than opening a panel that cannot be
+                // dismissed.
+                if (!dialog || typeof dialog.showModal !== 'function') {
+                    return;
+                }
+
+                // Guard the trigger as well as the dialog: a second bind
+                // would call showModal() twice, and the second call throws
+                // InvalidStateError on an already-open dialog.
+                trigger.setAttribute('data-tx-dialog-ready', '1');
+
+                bindDialog(dialog);
+
+                trigger.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    lastTrigger = trigger;
+                    dialog.showModal();
+                    document.documentElement.classList.add(OPEN_CLASS);
+                });
+            })(triggers[i]);
+        }
+    }
+
+    function init() {
+        initButtonLabels();
+        initDialogs();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();

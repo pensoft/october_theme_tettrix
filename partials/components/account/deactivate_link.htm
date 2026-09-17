@@ -1,0 +1,40 @@
+{#
+    Real buttons, not href="javascript:;" anchors - they toggle a panel, they
+    do not navigate, and an empty href is not keyboard-operable in a
+    predictable way.
+#}
+<button
+    type="button"
+    class="link-button"
+    aria-expanded="false"
+    aria-controls="accountDeactivateForm"
+    onclick="$('#accountDeactivateForm').toggle(); this.setAttribute('aria-expanded', $('#accountDeactivateForm').is(':visible') ? 'true' : 'false');">
+    Deactivate account
+</button>
+
+<div id="accountDeactivateForm" style="display: none">
+    {{ form_ajax('onDeactivate') }}
+        <hr />
+        <h2>Deactivate your account?</h2>
+        <p>
+            Your account will be disabled and your details removed from the site.
+            You can reactivate your account any time by signing back in.
+        </p>
+        <div class="form-group">
+            <label for="accountDeletePassword">
+                To continue, please enter your password:
+                <span class="field-required-marker" aria-hidden="true">*</span>
+            </label>
+            <input name="password" type="password" class="form-control" id="accountDeletePassword" required autocomplete="current-password" />
+        </div>
+        <button type="submit" class="btn btn-danger">
+            Confirm Deactivate Account
+        </button>
+        <button
+            type="button"
+            class="link-button"
+            onclick="$('#accountDeactivateForm').toggle(); $('[aria-controls=accountDeactivateForm]').attr('aria-expanded', 'false').focus();">
+            I changed my mind
+        </button>
+    {{ form_close() }}
+</div>

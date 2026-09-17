@@ -1,0 +1,163 @@
+[menu footer_menu]
+start = "id-1"
+activeNode = 0
+listItemClasses = "footer-menu-item"
+primaryClasses = "footer-menu"
+secondaryClasses = "dropdown-menu"
+numberOfLevels = 1
+
+[jumbotron disclaimer]
+jumbotron = "disclaimer"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[cookieConsent]
+message = "This website uses cookies to ensure you get the best experience on our website."
+dismiss = "Got it!"
+learnMore = "Opt-out here"
+link = "/privacy-policy#cookies"
+theme = "dark-bottom"
+==
+{% component 'cookieConsent' %}
+
+{#
+    TETTRIX footer.
+
+    The layout already provides <footer id="layout-footer">, so this is a plain
+    container - two contentinfo landmarks would be reported as an error by the
+    automated scan.
+
+    Four columns per the canvas: brand + social, General (CMS footer menu),
+    Contact, and the Get-involved card. Then the EU funding statement and the
+    legal row.
+#}
+{% set tx_logo = this.theme.site_logo ? this.theme.site_logo.getPath() : ('assets/images/tettrix-logo.svg'|theme) %}
+{% set tx_flag = footer_funds_flag ? footer_funds_flag : ('assets/images/funded-by-the-eu.png'|theme) %}
+
+<div class="tx-footer">
+    <div class="tx-footer__inner">
+
+        <div class="tx-footer__cols">
+
+            <div class="tx-footer__brand">
+                <a href="{{'home'|page}}" aria-label="{{ this.theme.site_name|default('TETTRIX') }} - home">
+                    <img src="{{ tx_logo }}" alt="{{ this.theme.site_name|default('TETTRIX') }}" />
+                </a>
+
+                <p class="tx-footer__tagline">
+                    {{ this.theme.tag_line|default('Next-generation European taxonomic system - connecting knowledge, expertise and innovation.')|raw }}
+                </p>
+
+                {% if enable_social_media %}
+                <nav class="tx-social" aria-label="Social media">
+                    {% if enable_linkedin and linkedin_url %}
+                    <a href="{{linkedin_url}}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on LinkedIn (opens in new window)">
+                        <img src="{{ 'assets/images/linkedin.svg'|theme }}" alt="" aria-hidden="true" />
+                    </a>
+                    {% endif %}
+                    {% if enable_instagram and instagram_url %}
+                    <a href="{{instagram_url}}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Instagram (opens in new window)">
+                        <img src="{{ 'assets/images/instagram.svg'|theme }}" alt="" aria-hidden="true" />
+                    </a>
+                    {% endif %}
+                    {% if enable_bluesky and bluesky_url %}
+                    <a href="{{bluesky_url}}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Bluesky (opens in new window)">
+                        <img src="{{ 'assets/images/bluesky-icon.svg'|theme }}" alt="" aria-hidden="true" />
+                    </a>
+                    {% endif %}
+                    {% if enable_facebook and facebook_url %}
+                    <a href="{{facebook_url}}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook (opens in new window)">
+                        <img src="{{ 'assets/images/facebook.svg'|theme }}" alt="" aria-hidden="true" />
+                    </a>
+                    {% endif %}
+                    {% if enable_youtube and youtube_url %}
+                    <a href="{{youtube_url}}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on YouTube (opens in new window)">
+                        <img src="{{ 'assets/images/youtube.svg'|theme }}" alt="" aria-hidden="true" />
+                    </a>
+                    {% endif %}
+                </nav>
+                {% endif %}
+            </div>
+
+            <nav class="tx-footer__col" aria-labelledby="footer-general-heading">
+                <h2 class="tx-footer__heading" id="footer-general-heading">General</h2>
+                {% component 'footer_menu' %}
+            </nav>
+
+            <div class="tx-footer__col">
+                <h2 class="tx-footer__heading">Contact</h2>
+                <div class="tx-footer__links">
+                    {# Coordinator name is not a theme setting; it comes from the
+                       design. Move it into theme.yaml if it needs to be editable. #}
+                    <span class="tx-footer__contact-label">Project coordinator</span>
+                    <span class="tx-footer__contact-name">Ana Casino</span>
+                    {# Rendered as plain text with [at] rather than a mailto,
+                       matching the anti-spam convention pages/contact.htm
+                       already uses. The real address lives in the theme
+                       settings (Feedback email), so it stays editable. #}
+                    {% if this.theme.feedback %}
+                    <span class="tx-footer__contact-email">{{ this.theme.feedback|replace({'@': '[at]'}) }}</span>
+                    {% endif %}
+                </div>
+                <div class="tx-footer__links mt-2">
+                    
+                    <span class="tx-footer__contact-label">Press office</span>
+                    <span class="tx-footer__contact-name">Alexandra Tzvetkova</span>
+                    
+                    <span class="tx-footer__contact-email">a.tzvetkova[at]pensoft.net</span>
+                </div>
+            </div>
+
+            <div class="tx-footer__cta">
+                <div>
+                    <h2 class="tx-footer__cta-title">Get involved</h2>
+                    <p class="tx-footer__cta-text">Calls, results and community news land in the TETTRIX newsletter first.</p>
+                </div>
+                {# Signup URL comes from the theme settings (Subscribe link).
+                   Falls back to the homepage if it is ever cleared, so the
+                   CTA never renders as a dead link.
+
+                   aria-label carries the whole name because tettrix.js splits
+                   .tx-btn__label into per-character spans and hides it from
+                   assistive tech. #}
+                {% set tx_subscribe = this.theme.subscribe ?: ('home'|page) %}
+                <a href="{{ tx_subscribe }}"
+                   class="tx-btn tx-btn--block"
+                   {% if this.theme.subscribe %}target="_blank" rel="noopener noreferrer"
+                   aria-label="Subscribe now (opens in new window)"{% endif %}>
+                    <span class="tx-btn__label">Subscribe now</span>
+                    <span class="tx-btn__icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <div class="tx-footer__rule"></div>
+
+        <div class="tx-footer__funding">
+            {% if tx_flag %}
+            <img src="{{ tx_flag }}" alt="Funded by the European Union" />
+            {% endif %}
+            <div class="tx-footer__funding-text">
+                {% component 'disclaimer' %}
+            </div>
+        </div>
+
+        <div class="tx-footer__legal">
+            <nav class="tx-footer__legal-links" aria-label="Legal">
+                <a href="/privacy-policy">Privacy policy</a>
+                <a href="">Cookies</a>
+                <a href="">Accessibility</a>
+            </nav>
+
+            <div class="tx-footer__credit">
+                <span>Designed and powered by</span>
+                <a href="https://pensoft.net/" target="_blank" rel="noopener noreferrer" aria-label="Pensoft website (opens in new window)">
+                    <img src="{{ 'assets/images/pensoft-logo.svg'|theme }}" alt="Pensoft" />
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

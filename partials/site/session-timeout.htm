@@ -1,0 +1,39 @@
+{#
+    Session timeout warning.
+
+    Rendered only for signed-in visitors. The dialog appears a couple of
+    minutes before the server-side session lifetime runs out, so nobody is
+    logged out mid-task without notice. It is a real dialog: focus moves into
+    it, Tab stays inside, Escape dismisses it, and focus returns to whatever
+    was focused before.
+
+    data-lifetime / data-warn-before are seconds and are read by
+    assets/js/accessibility.js.
+#}
+<div id="session-timeout-warning"
+     class="session-timeout"
+     role="alertdialog"
+     aria-modal="true"
+     aria-labelledby="session-timeout-title"
+     aria-describedby="session-timeout-description"
+     data-lifetime="{{ session_lifetime|default(7200) }}"
+     data-warn-before="120"
+     data-login-url="{{ 'login'|page }}"
+     hidden>
+    <div class="session-timeout__dialog">
+        <h2 id="session-timeout-title">{{'Your session is about to expire'|_}}</h2>
+        <p id="session-timeout-description">
+            {{'You will be signed out in'|_}}
+            <span class="session-timeout__countdown" id="session-timeout-countdown">2:00</span>.
+            {{'Choose "Stay signed in" to keep working.'|_}}
+        </p>
+        <div class="session-timeout__actions">
+            <button type="button" class="btn btn-primary" data-session-timeout-extend>
+                {{'Stay signed in'|_}}
+            </button>
+            <a class="btn btn-link" href="{{ 'login'|page }}" data-session-timeout-signout>
+                {{'Sign out now'|_}}
+            </a>
+        </div>
+    </div>
+</div>

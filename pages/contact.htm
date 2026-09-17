@@ -1,0 +1,71 @@
+url = "/contact"
+layout = "default"
+title = "Contact"
+is_hidden = 0
+robot_index = "index"
+robot_follow = "follow"
+
+[siteSearchInclude]
+
+[SimpleContactFormComponent]
+templates = "template4"
+recaptcha_key = "6LfL8IQrAAAAABk9Ma2CDNANxPLJ5IDL494Rlg7A"
+message_label = "Your question or comment"
+==
+<?php
+use Pensoft\Cardprofiles\Models\Profiles;
+
+function onStart(){
+	$this['profiles'] =  Profiles::where('category_id', 1)->get();
+}
+?>
+==
+{% component 'siteSearchInclude' %}
+
+<div class="container get-involved">
+    <div class="row center-xs">
+            <div class="col-md-6 col-xs-12 hero">
+                <div>
+                <h1>Get in touch or ask us a question!</h1>
+<!--                <p>Fill out the form below and we’ll get back to you as soon as possible.</p>-->
+                </div>
+
+                <div class="contact_page_info">
+                {% for profile in profiles %}
+                <div class="profile-item">
+                    <div class="row contact_info">
+                        <!--                <div class="coordinator_image">-->
+                        <!--                    <img src="{{profile.avatar.thumb(324, 274, {'mode' : 'crop' })}}">-->
+                        <!--                </div>-->
+                        <div class="coordinator_info">
+                            <div>
+                                <h2>{{profile.names}}</h2>
+                                {% if profile.position %} {{profile.position}} {% endif %}
+                            </div>
+
+                                {% if profile.email %}
+                                <div>
+                                    <a href="mailto:{{profile.email}}" class="btn btn-primary mail">
+                                        <i aria-hidden="true"></i>{{ profile.email|replace({'@': '[at]'}) }}
+                                    </a>
+                                </div>
+                                {% endif %}
+
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                </div>
+
+            </div>
+            <div class="col-md-4 col-xs-12">
+                <div class="contact_form_container">
+                    <div class="contact_form_content">
+                        {% component 'SimpleContactFormComponent' %}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+</div>

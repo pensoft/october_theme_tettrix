@@ -1,0 +1,68 @@
+title = "Policy briefs"
+layout = "default"
+url = "/media-center/policy-briefs"
+
+==
+<?php
+use Pensoft\Media\Models\Graphic;
+use System\Models\File;
+
+function onStart(){
+	$this['recordsList'] =  Graphic::get();
+	if(post('download')){
+		$file = File::find((int)post('download'));
+		$file_name = $file->getLocalPath();
+$recordName = post('file_name') ? post('file_name') : 'TETTRIX_policy_brief';
+$ext= $file->getExtension();
+
+if (file_exists($file_name)) {
+header('Content-Description: File Transfer');
+header('Content-Type: application/octet-stream');
+header("Content-Type: application/force-download");
+header('Content-Disposition: attachment; filename='.$recordName .'.'. $ext);
+header('Content-Transfer-Encoding: binary');
+header('Expires: 0');
+header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+header('Pragma: public');
+header('Content-Length: ' . filesize($file_name));
+ob_clean();
+flush();
+readfile($file_name);
+exit();
+}
+return Redirect::to('/media-center/policy-briefs');
+}
+}
+?>
+==
+
+<div class="container presentation">
+    <a href="/{{currentLang}}/media-center" class="back-to"> &#10094; Back to Media center</a><br><br>
+    <div class="row">
+        {% set records = recordsList %}
+        {% set displayColumn = recordsList.displayColumn %}
+        {% set noRecordsMessage = recordsList.noRecordsMessage %}
+        {% set detailsPage = recordsList.detailsPage %}
+        {% set detailsKeyColumn = recordsList.detailsKeyColumn %}
+        {% set detailsUrlParameter = recordsList.detailsUrlParameter %}
+
+        {% for record in records %}
+        {# Use spaceless tag to remove spaces inside the A tag. #}
+        {% spaceless %}
+        <div class="col-md-2 col-xs-12 mt-4">
+            <div class="card-container text-center">
+                <span class="card_title">{{record.name}}</span><br>
+                <span class="card_image_container" style="background: url({{record.image.thumb(220, 220,{'mode':'crop'})}}) center center no-repeat;" title="{{record.name}}"></span>
+
+                <br><a href="{{ partial('components/download-url', { file: record.file, name: record.name }) }}" target="_blank" class="btn btn-primary">Download<span class="sr-only"> {{record.name}}</span>{% partial 'components/new-tab-hint' %}</a>
+            </div>
+        </div>
+
+
+
+        {% endspaceless %}
+        {% else %}
+        {{ noRecordsMessage }}
+        {% endfor %}
+    </div>
+</div>

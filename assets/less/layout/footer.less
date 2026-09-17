@@ -1,0 +1,332 @@
+// ===========================================================================
+//  TETTRIX footer
+//  ---------------------------------------------------------------------------
+//  Four-column dark footer: brand + social, General links, Contact, and the
+//  Get-involved card. Below it the EU funding statement and the legal row.
+//
+//  master.less pins the old footer to a fixed 345px with a negative margin
+//  (the classic sticky-footer hack) and pads #layout-content to match. This
+//  file is imported after it specifically to undo that, because the new
+//  footer is content-height.
+//
+//  The footer is a plain block in normal flow: it follows the content and
+//  ends the page. master.less already gives .content-wrapper min-height:100%
+//  against html/body height:100%, so on a short page the content still fills
+//  the viewport and the footer sits directly below it.
+// ===========================================================================
+
+#layout-content {
+    padding-bottom: 0;
+}
+
+#layout-footer {
+    height: auto;
+    margin-top: 0;
+    position: relative;
+    color: @tx-white;
+    background: @tx-black;
+}
+
+.tx-footer {
+    background: @tx-black;
+    padding: 62px @tx-gutter 36px;
+    box-sizing: border-box;
+    font-family: @tx-font-display;
+
+    .breakpoint-large-down({
+        padding: 54px @tx-gutter-md 32px;
+    });
+    .breakpoint-medium-down({
+        padding: 44px @tx-gutter-sm 28px;
+    });
+
+    &__inner {
+        max-width: @tx-container;
+        margin: 0 auto;
+    }
+
+    &__cols {
+        display: grid;
+        grid-template-columns: 1.35fr 0.75fr 0.9fr 1.1fr;
+        gap: 56px;
+        align-items: start;
+
+        .breakpoint-large-down({
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 40px;
+        });
+        .breakpoint-medium-down({
+            grid-template-columns: minmax(0, 1fr);
+            gap: 34px;
+        });
+    }
+
+    // -- Brand column -------------------------------------------------------
+    &__brand {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+
+        img {
+            display: block;
+            height: 38px;
+            width: auto;
+        }
+    }
+
+    &__tagline {
+        max-width: 270px;
+        color: @tx-on-dark-60;
+        font-size: 15px;
+        line-height: 25px;
+    }
+
+    // -- Link columns -------------------------------------------------------
+    &__col {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    &__heading {
+        margin: 0;
+        color: @tx-on-dark-label;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2.6px;
+        text-transform: uppercase;
+    }
+
+    &__links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            list-style: none;
+        }
+
+        a {
+            color: @tx-on-dark-78;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            text-decoration: none;
+            .transition(color @tx-speed ease);
+
+            &:hover,
+            &:focus {
+                color: @tx-orange-bright;
+            }
+        }
+    }
+
+    // -- Contact column -----------------------------------------------------
+    &__contact-label {
+        color: @tx-on-dark-50;
+        font-size: @tx-label-size;
+    }
+
+    &__contact-name {
+        color: @tx-on-dark-90;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    // Plain text, not a link, so it does not inherit the `a` rules in
+    // &__links above - it needs its own type.
+    &__contact-email {
+        color: @tx-on-dark-78;
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: 0.2px;
+    }
+
+    // -- Get involved card --------------------------------------------------
+    &__cta {
+        background: @tx-on-dark-05;
+        border: 1px solid @tx-on-dark-12;
+        border-radius: @tx-radius-md;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    &__cta-title {
+        margin: 0;
+        color: @tx-white;
+        font-size: 19px;
+        font-weight: 600;
+        // The display face sets tight negative tracking by default, which
+        // reads as cramped at this size on the dark card. Opened up slightly -
+        // positive rather than just back to 0, since that is the ask.
+        letter-spacing: 0.3px;
+    }
+
+    &__cta-text {
+        color: rgba(255, 255, 255, 0.7);
+        font-family: @tx-font-body;
+        font-size: 14px;
+        line-height: 23px;
+    }
+
+    // -- Funding + legal ----------------------------------------------------
+    &__rule {
+        margin-top: 48px;
+        height: 1px;
+        background: @tx-on-dark-16;
+    }
+
+    &__funding {
+        margin-top: 32px;
+        display: flex;
+        align-items: flex-start;
+        gap: 32px;
+
+        .breakpoint-medium-down({
+            flex-direction: column;
+            gap: 18px;
+        });
+
+        img {
+            width: 210px;
+            flex: 0 0 auto;
+            margin-top: 2px;
+            height: auto;
+        }
+    }
+
+    &__funding-text {
+        color: @tx-on-dark-55;
+        font-family: @tx-font-body;
+        font-size: 12px;
+        line-height: 20px;
+
+        .container, .container-fluid{
+            padding: 0;
+        }
+
+        p {
+            margin: 0 0 8px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &__legal {
+        margin-top: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        color: @tx-on-dark-42;
+        font-size: 12px;
+
+        .breakpoint-medium-down({
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+        });
+    }
+
+    // Descendant form for the same reason as the hero rail: this is a <nav>,
+    // and news.less gives every non-.navbar nav `width: 100%`, which would
+    // crowd the credit out of the space-between row.
+    &__legal > &__legal-links {
+        width: auto;
+    }
+
+    &__legal-links {
+        display: flex;
+        gap: 24px;
+
+        a {
+            color: @tx-on-dark-42;
+            text-decoration: none;
+            .transition(color @tx-speed ease);
+
+            &:hover,
+            &:focus {
+                color: @tx-on-dark-78;
+            }
+        }
+    }
+
+    &__credit {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            color: @tx-on-dark-42;
+        }
+
+        img {
+            height: 16px;
+            width: auto;
+            opacity: .7;
+            .transition(opacity @tx-speed ease);
+        }
+
+        a:hover img,
+        a:focus img {
+            opacity: 1;
+        }
+    }
+}
+
+// The footer menu comes from the menu component, so the markup is fixed. The
+// old rules for it are keyed on #layout-footer, which outranks a class-only
+// selector - these have to carry the same ID to take over.
+#layout-footer .tx-footer {
+    .footer-menu {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: flex-start;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        .breakpoint-large-down({
+            flex-direction: column;
+        });
+
+        .footer-menu-item,
+        li {
+            list-style: none;
+            margin: 0;
+        }
+
+        a {
+            color: @tx-on-dark-78;
+            font-size: 15px;
+            font-weight: 500;
+            line-height: 1.4;
+            letter-spacing: 0.2px;
+            text-align: left;
+            text-decoration: none;
+            .transition(color @tx-speed ease);
+
+            &:hover,
+            &:focus {
+                color: @tx-orange-bright;
+                opacity: 1;
+            }
+        }
+
+        // Second-level entries are not part of the footer design.
+        .dropdown-menu {
+            display: none;
+        }
+    }
+}

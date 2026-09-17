@@ -1,0 +1,27 @@
+<div class="related-news-records">
+{% for record in related %}
+    <div class="col-md-4 col-xs-12 highlight-news">
+        <article class="row news-card" aria-labelledby="related-title-{{loop.index}}">
+            <div class="img-container">
+                {#
+                    The cover links to the same article as the title below it,
+                    so it is hidden from assistive technology instead of being
+                    announced as a second, unlabelled link.
+                #}
+                <a href="/news/{{record.slug}}" tabindex="-1" aria-hidden="true">
+                    <img src="{{ record.cover.path }}" alt="">
+                </a>
+                <a class="news-title" href="/news/{{record.slug}}">
+                    <time class="news-date" datetime="{{record.published_at|date('Y-m-d')}}">
+                        {{record.published_at|date("d")}} {{record.published_at|date("F")|upper|_}} {{record.published_at|date("Y")}}
+                    </time>
+                    <div class="title">
+                        <h3 id="related-title-{{loop.index}}">{{ record.title|length > 70 ? record.title|striptags|slice(0, 70)|replace({"&nbsp;": " ", ".": ". "}) ~ '...' : record.title|striptags|replace({"&nbsp;": " ", ".": ". "})  }}</h3>
+                    </div>
+                </a>
+            </div>
+        </article>
+    </div>
+
+{% endfor %}
+</div>

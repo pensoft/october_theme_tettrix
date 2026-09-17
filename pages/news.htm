@@ -1,0 +1,330 @@
+url = "/news/:id?|[a-zA-Z\-0-9]"
+layout = "default"
+title = "News"
+is_hidden = 0
+robot_index = "index"
+robot_follow = "follow"
+
+==
+<?php
+use Pensoft\Articles\Models\Category;
+use Pensoft\Articles\Models\Article;
+
+function urlencode($string){
+    return trim(urlencode($string));
+}
+function onStart()
+{
+
+$this['article'] = Pensoft\Articles\Models\Article::where('slug', $this->param('id'))->where('published', 'true')->first();
+
+$this['categories'] = Category::orderBy('sort_order')->orderBy('created_at', 'desc')->get();
+
+$categoryId = input('categoryId', 'all');
+
+if ($categoryId !== 'all' && !is_numeric($categoryId)) {
+return redirect('news');
+}
+
+$this['categoryId'] = $categoryId;
+
+if ($categoryId === 'all') {
+$records = Article::news()->where('published_at', '<=', 'now')
+->where('published', 'true')
+->orderBy('published_at', 'DESC')
+->paginate(15);
+} else {
+$records = Article::news()->whereHas('categories', function ($query) use ($categoryId) {
+$query->where('id', $categoryId);
+})->where('published_at', '<=', 'now')
+->where('published', 'true')
+->orderBy('published_at', 'DESC')
+->paginate(15);
+}
+
+if ($categoryId !== 'all') {
+$records->appends(['categoryId' => $categoryId]);
+}
+
+$this['records'] = $records;
+
+if($this['article']){
+
+$this['is_detail_page'] = $this['article'] ? true : false;
+$this['allow_share'] = $this['article']['allow_share'] == 'yes' ? true : false;
+if($this['is_detail_page']){
+$seoTitle = $this['article']['title'];
+$seoKeywords = $this['article']['meta_keywords'] ?: $this['article']['keywords'];
+$seoDescription = str_limit(Html::strip($this['article']['content']), 255);
+
+if (class_exists('\BennoThommo\Meta\Meta')) {
+if($seoTitle) {
+\BennoThommo\Meta\Meta::set('title', $seoTitle);
+}
+if($seoKeywords) {
+\BennoThommo\Meta\Meta::set('keywords', $seoKeywords);
+}
+if($seoDescription) {
+\BennoThommo\Meta\Meta::set('description', $seoDescription);
+}
+}
+}
+if($this['is_detail_page'] and $this['allow_share']){
+$this['page_url'] = $this->pageUrl('');
+$this['encoded_title'] = urlencode($this['article']['title']);
+$this['slug'] = $this['article']['slug'];
+\BennoThommo\Meta\Meta::set('twitter:card', 'summary_large_image');
+\BennoThommo\Meta\Meta::set('twitter:title', $this['article']['title']);
+\BennoThommo\Meta\Meta::set('twitter:description', str_limit(Html::strip($this['article']['content']), 255));
+\BennoThommo\Meta\Meta::set('og:title', $this['article']['title']);
+\BennoThommo\Meta\Meta::set('og:description', str_limit(Html::strip($this['article']['content']), 255) );
+\BennoThommo\Meta\Meta::set('og:type', 'article');
+\BennoThommo\Meta\Meta::set('og:url', $this->pageUrl(''));
+if($this['article']['cover']){
+\BennoThommo\Meta\Meta::set('twitter:image', $this['article']['cover']->getThumb(600, null, ['mode' => 'auto']));
+
+\BennoThommo\Meta\Meta::set('og:image', $this['article']['cover']->getThumb(600, 314, ['mode' => 'crop']));
+\BennoThommo\Meta\Meta::set('og:image:width', 600);
+\BennoThommo\Meta\Meta::set('og:image:height', 314);
+}
+}
+}
+
+if($this['is_detail_page']){
+// Reading time for the article meta row in the design. 200 wpm, rounded up.
+$words = str_word_count(Html::strip($this['article']['content']));
+$this['read_minutes'] = max(1, (int) ceil($words / 200));
+
+$related = array();
+if($this['article']['slug']){
+$article = Article::where('slug', $this['article']['slug'])->first();
+$arrayOfTags = explode(",", $article->keywords);
+
+$related = Article::where('slug', '!=', $this['article']['slug']);
+
+$orWhere = '( ';
+$c = 1;
+
+foreach($arrayOfTags as $tag){
+$orWhere .= ' keywords ILIKE \'%'.trim($tag).'%\' ';
+if($c < count($arrayOfTags)){
+$orWhere .= ' or ';
+}
+$c++;
+}
+$orWhere .= ')';
+$related = $related
+->whereRaw($orWhere)
+->limit(3)
+->get();
+
+$this['related'] = $related;
+}
+}
+}
+?>
+==
+{#
+    TETTRIX news - implements design/TETTRIX News Article.dc.html for the
+    detail view and the same card language for the index.
+
+    The single <main> is the layout's #layout-content, so nothing here opens
+    another landmark of its own.
+#}
+
+{% if is_detail_page %}
+
+<div class="tx-back-bar">
+    <nav aria-label="Breadcrumb">
+        <a href="/news" class="tx-back">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M10 3.3L5.3 8l4.7 4.7" /></svg>
+            <span>Back to all news</span>
+        </a>
+    </nav>
+</div>
+
+<article class="tx-article">
+
+    {% if article.cover %}
+    <div class="tx-article__cover">
+        <figure>
+            <img src="{{ article.cover.path }}" alt="Featured image for: {{ article.title|striptags }}" />
+        </figure>
+        {% if article.caption %}
+        <div class="tx-article__caption">{{ article.caption|raw }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="tx-article__inner">
+        {#
+            Label, then the date, then the reading time - the meta row from
+            design/TETTRIX News Article.dc.html, where the article is tagged
+            "Consortium".
+
+            The label is the Articles model's own `label` field (a plain
+            nullable text column, editable per article in the backend). It is
+            not translatable, so no locale lookup applies. Blank or whitespace
+            falls back to "Consortium".
+        #}
+        {% set article_label = article.label|default('')|striptags|trim %}
+
+        <div class="tx-article__meta">
+            <span class="tx-pill">{{ article_label ?: 'Consortium' }}</span>
+            <time class="tx-eyebrow" datetime="{{ article.published_at|date('Y-m-d') }}">
+                {{ article.published_at|date('d F Y') }}
+            </time>
+            {% if read_minutes %}
+            <span class="tx-meta">{{ read_minutes }} min read</span>
+            {% endif %}
+        </div>
+
+        <h1 class="tx-article__title" id="article-title">{{ article.title|striptags }}</h1>
+
+        <div class="tx-article__body">
+            {{ article.content|raw }}
+        </div>
+
+        {% if allow_share %}
+        <div class="tx-article__rule"></div>
+
+        <div class="tx-article__share">
+            <span class="tx-article__share-label" id="share-label">Share this article</span>
+            <div class="tx-article__share-links" role="group" aria-labelledby="share-label">
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page_url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   aria-label="Share this article on LinkedIn (opens in new window)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM2.4 21h5.2V9.4H2.4V21Zm7.6 0h5.2v-6.3c0-1.7.6-2.8 2-2.8 1.3 0 1.8 1 1.8 2.8V21h5.2v-6.9c0-3.6-1.9-5.3-4.5-5.3-2.1 0-3.1 1.2-3.6 2h-.1V9.4H10c.1 1.2 0 11.6 0 11.6Z"/></svg>
+                    <span class="sr-only">LinkedIn</span>
+                </a>
+                <a href="https://twitter.com/intent/tweet?url={{ page_url }}&text={{ encoded_title }}"
+                   target="_blank" rel="noopener noreferrer"
+                   aria-label="Share this article on X (opens in new window)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M18.9 2H22l-6.8 7.8L23 22h-6.3l-4.9-6.4L6.1 22H3l7.3-8.3L2.4 2h6.4l4.6 6L18.9 2Zm-1.1 18h1.7L7.4 3.7H5.6L17.8 20Z"/></svg>
+                    <span class="sr-only">X</span>
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ page_url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   aria-label="Share this article on Facebook (opens in new window)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M13.5 21v-8h2.7l.4-3.1h-3.1V7.9c0-.9.3-1.5 1.6-1.5h1.6V3.6c-.3 0-1.3-.1-2.4-.1-2.4 0-4.1 1.5-4.1 4.2v2.2H7.4V13h2.4v8h3.7Z"/></svg>
+                    <span class="sr-only">Facebook</span>
+                </a>
+                <a href="https://bsky.app/intent/compose?text={{ page_url }}"
+                   target="_blank" rel="noopener noreferrer"
+                   aria-label="Share this article on Bluesky (opens in new window)">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 10.8C10.9 8.6 7.9 4.6 5.2 2.7 2.6.9 1.6 1.2 1 1.5.2 1.8 0 3 0 3.7c0 .7.4 5.9.7 6.8.9 2.8 3.9 3.8 6.7 3.5-4.1.6-7.7 2.1-2.9 7.4 5.2 5.4 7.2-1.2 8.2-4.5 1 3.3 2.2 9.7 8.1 4.5 4.5-4.5 1.3-6.8-2.8-7.4 2.8.3 5.8-.7 6.7-3.5.3-.9.7-6.1.7-6.8 0-.7-.2-1.9-1-2.2-.6-.3-1.6-.6-4.2 1.2C17.5 4.6 14.5 8.6 13.4 10.8c-.4.9-.7 1.3-1.4 1.3s-1-.4-1.4-1.3Z"/></svg>
+                    <span class="sr-only">Bluesky</span>
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</article>
+
+{% if related|length %}
+<section class="tx-related" aria-labelledby="related-heading">
+    <div class="tx-related__inner">
+        <h2 class="tx-section-title" id="related-heading">Other news</h2>
+        <div class="tx-related__grid">
+            {% for record in related %}
+            <article class="tx-news-card tx-arrow-card">
+                <div class="tx-news-card__media">
+                    {% if record.cover %}
+                    <img src="{{ record.cover.path }}" alt="" aria-hidden="true" />
+                    {% endif %}
+                </div>
+                <div class="tx-news-card__body">
+                    <time class="tx-eyebrow" datetime="{{ record.published_at|date('Y-m-d') }}">
+                        {{ record.published_at|date('d F Y') }}
+                    </time>
+                    <h3 class="tx-news-card__title">{{ record.title|striptags }}</h3>
+                    <div class="tx-news-card__foot">
+                        <div class="tx-news-card__rule"></div>
+                        <div class="tx-news-card__action">
+                            <span>Read more</span>
+                            <span class="tx-arrow" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l4 4-4 4"></path></svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <a class="tx-news-card__link" href="/news/{{ record.slug }}">
+                    <span class="sr-only">Read more: {{ record.title|striptags }}</span>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% else %}
+
+<div class="tx-page">
+    <div class="tx-page-head">
+        <h1 class="tx-page-title">News</h1>
+
+        {% if categories.count > 0 %}
+        {#
+            Ordinary links that reload the page with a different query string,
+            not an ARIA tab widget - role="tab" without a tablist/tabpanel
+            relationship (and without arrow-key handling) misreports the
+            control. aria-current marks the active filter.
+        #}
+        <nav class="tx-chips" id="category-tabs" aria-label="News categories">
+            <a href="/news"
+               class="{{ 'all' == categoryId ? 'active' : '' }}"
+               {% if 'all' == categoryId %}aria-current="page"{% endif %}>All news</a>
+            {% for category in categories %}
+            <a href="/news?categoryId={{ category.id }}"
+               class="{{ category.id == categoryId ? 'active' : '' }}"
+               {% if category.id == categoryId %}aria-current="page"{% endif %}>{{ category.name }}</a>
+            {% endfor %}
+        </nav>
+        {% endif %}
+    </div>
+
+    <section id="news-content" aria-labelledby="news-list-heading">
+        <h2 id="news-list-heading" class="sr-only">News articles</h2>
+
+        {% if records|length %}
+        <div class="tx-news-grid">
+            {% for record in records %}
+            <article class="tx-news-card tx-arrow-card">
+                <div class="tx-news-card__media">
+                    {% if record.cover %}
+                    <img src="{{ record.cover.path }}" alt="" aria-hidden="true" />
+                    {% endif %}
+                </div>
+                <div class="tx-news-card__body">
+                    <time class="tx-eyebrow" datetime="{{ record.published_at|date('Y-m-d') }}">
+                        {{ record.published_at|date('d F Y') }}
+                    </time>
+                    <h3 class="tx-news-card__title">{{ record.title|striptags }}</h3>
+                    <div class="tx-news-card__foot">
+                        <div class="tx-news-card__rule"></div>
+                        <div class="tx-news-card__action">
+                            <span>Read more</span>
+                            <span class="tx-arrow" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l4 4-4 4"></path></svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <a class="tx-news-card__link" href="/news/{{ record.slug }}">
+                    <span class="sr-only">Read more: {{ record.title|striptags }}</span>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+
+        <nav class="tx-pagination" aria-label="News pagination">
+            {{ records.render|raw }}
+        </nav>
+        {% else %}
+        <p class="tx-empty">No news articles in this category yet.</p>
+        {% endif %}
+    </section>
+</div>
+
+{% endif %}

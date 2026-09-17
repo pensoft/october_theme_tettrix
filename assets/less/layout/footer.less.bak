@@ -1,0 +1,298 @@
+// ===========================================================================
+//  TETTRIX footer
+//  ---------------------------------------------------------------------------
+//  Four-column dark footer: brand + social, General links, Contact, and the
+//  Get-involved card. Below it the EU funding statement and the legal row.
+//
+//  master.less pins the old footer to a fixed 345px with a negative margin
+//  (the classic sticky-footer hack) and pads #layout-content to match. This
+//  file is imported after it specifically to undo that, because the new
+//  footer is content-height.
+// ===========================================================================
+
+#layout-content {
+    padding-bottom: 0;
+}
+
+.content-wrapper {
+    position: relative;
+    z-index: 1;
+    background: @tx-white;
+}
+
+#layout-footer {
+    height: auto;
+    margin-top: 0;
+    position: relative;
+    color: @tx-white;
+    background: @tx-black;
+
+    // The canvas reveals the footer from under the page. Desktop only: on
+    // narrow screens the footer is taller than the viewport, where sticky
+    // degrades to a normal block anyway.
+    .breakpoint-large({
+        position: sticky;
+        bottom: 0;
+        z-index: 0;
+    });
+}
+
+.tx-footer {
+    background: @tx-black;
+    padding: 62px @tx-gutter 36px;
+    box-sizing: border-box;
+    font-family: @tx-font-display;
+
+    .breakpoint-large-down({
+        padding: 54px @tx-gutter-md 32px;
+    });
+    .breakpoint-medium-down({
+        padding: 44px @tx-gutter-sm 28px;
+    });
+
+    &__inner {
+        max-width: @tx-container;
+        margin: 0 auto;
+    }
+
+    &__cols {
+        display: grid;
+        grid-template-columns: 1.35fr 0.75fr 0.9fr 1.1fr;
+        gap: 56px;
+        align-items: start;
+
+        .breakpoint-large-down({
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 40px;
+        });
+        .breakpoint-medium-down({
+            grid-template-columns: minmax(0, 1fr);
+            gap: 34px;
+        });
+    }
+
+    // -- Brand column -------------------------------------------------------
+    &__brand {
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+
+        img {
+            display: block;
+            height: 38px;
+            width: auto;
+        }
+    }
+
+    &__tagline {
+        max-width: 270px;
+        color: @tx-on-dark-60;
+        font-size: 15px;
+        line-height: 25px;
+    }
+
+    // -- Link columns -------------------------------------------------------
+    &__col {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    &__heading {
+        margin: 0;
+        color: @tx-on-dark-label;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2.6px;
+        text-transform: uppercase;
+    }
+
+    &__links {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li {
+            list-style: none;
+        }
+
+        a {
+            color: @tx-on-dark-78;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            text-decoration: none;
+            .transition(color @tx-speed ease);
+
+            &:hover,
+            &:focus {
+                color: @tx-orange-bright;
+            }
+        }
+    }
+
+    // The menu component emits its own list markup; normalise it here.
+    .footer-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        .footer-menu-item {
+            list-style: none;
+        }
+
+        a {
+            color: @tx-on-dark-78;
+            font-size: 15px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            text-decoration: none;
+            .transition(color @tx-speed ease);
+
+            &:hover,
+            &:focus {
+                color: @tx-orange-bright;
+            }
+        }
+    }
+
+    // -- Contact column -----------------------------------------------------
+    &__contact-label {
+        color: @tx-on-dark-50;
+        font-size: @tx-label-size;
+    }
+
+    &__contact-name {
+        color: @tx-on-dark-90;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    // -- Get involved card --------------------------------------------------
+    &__cta {
+        background: @tx-on-dark-05;
+        border: 1px solid @tx-on-dark-12;
+        border-radius: @tx-radius-md;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    &__cta-title {
+        margin: 0;
+        color: @tx-white;
+        font-size: 19px;
+        font-weight: 600;
+    }
+
+    &__cta-text {
+        color: rgba(255, 255, 255, 0.7);
+        font-family: @tx-font-body;
+        font-size: 14px;
+        line-height: 23px;
+    }
+
+    // -- Funding + legal ----------------------------------------------------
+    &__rule {
+        margin-top: 48px;
+        height: 1px;
+        background: @tx-on-dark-16;
+    }
+
+    &__funding {
+        margin-top: 32px;
+        display: flex;
+        align-items: flex-start;
+        gap: 32px;
+
+        .breakpoint-medium-down({
+            flex-direction: column;
+            gap: 18px;
+        });
+
+        img {
+            width: 210px;
+            flex: 0 0 auto;
+            margin-top: 2px;
+            height: auto;
+        }
+    }
+
+    &__funding-text {
+        color: @tx-on-dark-55;
+        font-family: @tx-font-body;
+        font-size: 12px;
+        line-height: 20px;
+
+        p {
+            margin: 0 0 8px;
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+    }
+
+    &__legal {
+        margin-top: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        color: @tx-on-dark-42;
+        font-size: 12px;
+
+        .breakpoint-medium-down({
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
+        });
+    }
+
+    &__legal-links {
+        display: flex;
+        gap: 24px;
+
+        a {
+            color: @tx-on-dark-42;
+            text-decoration: none;
+            .transition(color @tx-speed ease);
+
+            &:hover,
+            &:focus {
+                color: @tx-on-dark-78;
+            }
+        }
+    }
+
+    &__credit {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        a {
+            display: inline-flex;
+            align-items: center;
+            color: @tx-on-dark-42;
+        }
+
+        img {
+            height: 16px;
+            width: auto;
+            opacity: .7;
+            .transition(opacity @tx-speed ease);
+        }
+
+        a:hover img,
+        a:focus img {
+            opacity: 1;
+        }
+    }
+}

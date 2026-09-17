@@ -1,0 +1,25 @@
+<!-- Params
+url, title, image, content
+-->
+<div class="link">
+    <div class="link-header">
+        {#
+            The title attributes duplicated the link text for pointer users and
+            were announced twice by screen readers; the new-tab hint replaces
+            them with the warning the checklist asks for. The image link is
+            hidden from assistive technology because the title link right above
+            it already points at the same destination.
+        #}
+        <a class="link-title" href="{{url}}" target="_blank" rel="noopener noreferrer">
+            {{title}}{% partial 'components/new-tab-hint' %}
+        </a>
+        {% if image %}
+            <a class="link-image" href="{{url}}" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">
+                <img src="{{image}}" alt="" />
+            </a>
+        {% endif %}
+    </div>
+    <div class="link-body">
+        {{content|raw}}
+    </div>
+</div>

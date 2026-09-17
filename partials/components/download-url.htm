@@ -1,0 +1,30 @@
+{#
+    Builds the href for a file attachment so that the ORIGINAL file name ends
+    up in the URL instead of the hashed disk name. Matomo reads the link href
+    when it registers a download, so this is what makes the "Downloads" report
+    readable.
+
+    Renders nothing but the URL, so it is meant to be used inside an attribute:
+
+        <a href="{{ partial('components/download-url', { file: record.file }) }}">
+
+    Pass "name" to label the link after the record instead of the uploaded
+    file, which is usually the nicer read in Matomo:
+
+        {{ partial('components/download-url', { file: record.file, name: record.name }) }}
+
+    Served by the "download" page (pages/download.htm).
+#}
+{%- if file -%}
+    {%- set extension = file.getExtension()|lower -%}
+    {# Record titles come out of a rich text field, so strip markup and entities. #}
+    {%- set label = name|default(file.file_name)|striptags|html_decode -%}
+    {# Drop the extension from the label so it is not slugged into the name. #}
+    {%- set segments = label|split('.') -%}
+    {%- if segments|length > 1 and segments|last|lower == extension -%}
+        {%- set label = segments|slice(0, -1)|join('.') -%}
+    {%- endif -%}
+    {# Keep long record titles from turning into unreadable URLs. #}
+    {%- set slug = label|slug|slice(0, 80)|trim('-') ?: 'file-' ~ file.id -%}
+    {{- 'download'|page({ id: file.id, name: extension ? slug ~ '.' ~ extension : slug }, false) -}}
+{%- endif -%}

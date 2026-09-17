@@ -1,0 +1,70 @@
+url = "/about"
+layout = "default"
+title = "About"
+is_hidden = 0
+meta_description = "about page"
+seo_keywords = "keywords"
+robot_index = "index"
+robot_follow = "follow"
+
+[siteSearchInclude]
+
+[jumbotron about_intro]
+jumbotron = "about-project"
+title = 1
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron objectives]
+jumbotron = "objectives"
+title = 1
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron bottom_section]
+jumbotron = "about-bottom-section"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+==
+<?php
+use Pensoft\Cardprofiles\Models\Profiles;
+
+function onStart(){
+	$this['profiles'] =  Profiles::where('category_id', 1)->get();
+}
+?>
+==
+{% component 'siteSearchInclude' %}
+
+<div class="container about_intro">
+    <div class="row middle-xs">
+        <div class="col-md-6 col-xs-12">
+        {% component 'about_intro' %}
+        </div>
+        <div class="col-md-6 col-xs-12 end-md center-xs" data-aos="fade-up">
+            <img src="{{'about.png'|media}}"
+                 alt="Illustration representing the TETTRIX project's approach to democratic governance and multilevel collaboration"></div>
+    </div>
+</div>
+
+{#
+    The headings inside these components are authored in the CMS, so the
+    sections carry their own name here instead of pointing aria-labelledby at
+    ids that are never rendered.
+#}
+<section class="container objectives" aria-labelledby="objectives-heading">
+    <h2 id="objectives-heading" class="visually-hidden">Project objectives</h2>
+
+    {% component 'objectives' %}
+
+</section>
+
+
+<section class="container-fluid about_bottom_section" aria-labelledby="about-summary-heading">
+    <h2 id="about-summary-heading" class="visually-hidden">About the project</h2>
+    {% component 'bottom_section' %}
+</section>
+

@@ -1,0 +1,23 @@
+
+
+<br>
+{# The + glyph is decorative, and both controls open a dialog. #}
+<a data-toggle="modal" class="modal-link" href="#contentBasicFolder{{ subfolder.id }}" aria-haspopup="dialog" style="margin-left: 0;"><span class="circled_plus" aria-hidden="true"></span> Create subfolder in {{ subfolder.name }}</a>
+&nbsp;&nbsp;&nbsp;
+<a data-toggle="modal"  class="modal-link" href="#contentBasicFiles{{ subfolder.id }}" aria-haspopup="dialog" style="margin-left: 0;"><span class="circled_plus" aria-hidden="true"></span> Upload files to {{ subfolder.name }}</a>
+
+
+	{% partial __SELF__ ~ '::_popup-files-form' subfolder=subfolder %}
+	{% partial __SELF__ ~ '::_popup-folders-form' subfolder=subfolder partial_name='_subfolders_list' %}
+
+
+
+<div id="files_list_{{subfolder.id}}">
+	{% partial __SELF__ ~ '::_files_list' folder=subfolder group_id=subfolder.id %}
+</div>
+<div id="sortableFolders{{subfolder.id}}">
+	{% partial __SELF__ ~ '::_subfolders_list' folder=subfolder %}
+</div>
+<script>
+	initSort('sortableFolders{{subfolder.id}}', '{{subfolder.id}}', 'folders');
+</script>

@@ -1,0 +1,356 @@
+// ===========================================================================
+//  TETTRIX header
+//  ---------------------------------------------------------------------------
+//  The canvas shows two states: transparent over the homepage hero, and a
+//  solid 78px dark bar on the news article. Both are here - `.tx-header` is
+//  transparent, `.scrolled` (added by assets/js/app.js) and
+//  `.tx-header--solid` (added by the partial on every non-home page) paint it.
+//
+//  The DOM hooks app.js and accessibility.js rely on are preserved:
+//  #headernavbar, #menuToggle, #mobile-menu-toggle, #menuToggle .navbar-nav
+//  and #search. The old .navbar classes are gone, so components/navbar.less
+//  no longer applies to the header.
+// ===========================================================================
+
+.tx-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: @zindex-fixed;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    height: 86px;
+    padding: 0 @tx-gutter;
+    box-sizing: border-box;
+    background: transparent;
+    .transition(background @tx-speed-slow ease, height @tx-speed-slow ease);
+
+    .breakpoint-large-down({
+        height: 72px;
+        padding: 0 @tx-gutter-md;
+    });
+    .breakpoint-medium-down({
+        padding: 0 @tx-gutter-sm;
+    });
+
+    // Scrolled past the hero, and every page that has no hero behind it.
+    &.scrolled,
+    &--solid {
+        height: 78px;
+        background: @tx-black;
+    }
+
+    &__brand {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        img {
+            display: block;
+            height: 34px;
+            width: auto;
+        }
+
+        .breakpoint-medium-down({
+            img {
+                height: 28px;
+            }
+        });
+    }
+
+    &.scrolled &__brand img,
+    &--solid &__brand img {
+        height: 30px;
+    }
+
+    // -- Desktop navigation -------------------------------------------------
+    &__nav {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 30px;
+
+        .breakpoint-large-down({
+            display: none;
+        });
+
+        .navbar-nav {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .nav-item {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        a {
+            color: @tx-on-dark-88;
+            font-family: @tx-font-display;
+            font-size: @tx-label-size;
+            font-weight: 600;
+            letter-spacing: 0.26px;
+            text-decoration: none;
+            white-space: nowrap;
+            .transition(color @tx-speed ease);
+
+            &:hover,
+            &:focus,
+            &.active {
+                color: @tx-orange-bright;
+            }
+        }
+
+        // Second-level items collapse into a hover panel.
+        .dropdown-menu {
+            position: absolute;
+            display: none;
+            margin: 10px 0 0;
+            padding: 10px 0;
+            min-width: 200px;
+            list-style: none;
+            background: @tx-black;
+            border: 1px solid @tx-on-dark-12;
+            border-radius: @tx-radius-sm;
+
+            a {
+                display: block;
+                padding: 8px 18px;
+                font-weight: 500;
+            }
+        }
+
+        .nav-item:hover > .dropdown-menu,
+        .nav-item:focus-within > .dropdown-menu {
+            display: block;
+        }
+    }
+
+    // -- Utility cluster ----------------------------------------------------
+    &__tools {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    &__icon-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 18px;
+        border: 1px solid @tx-on-dark-22;
+        background: @tx-on-dark-10;
+        color: @tx-white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        .transition(background @tx-speed ease, border-color @tx-speed ease);
+
+        &:hover,
+        &:focus {
+            background: @tx-on-dark-22;
+            border-color: @tx-on-dark-50;
+        }
+    }
+
+    &__locale {
+        height: 36px;
+        padding: 0 10px;
+        border-radius: 18px;
+        border: 1px solid @tx-on-dark-22;
+        background: @tx-on-dark-10;
+        color: @tx-white;
+        font-family: @tx-font-display;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+
+        option {
+            color: @tx-ink;
+            background: @tx-white;
+        }
+
+        .breakpoint-medium-down({
+            display: none;
+        });
+    }
+}
+
+// -- Burger + slide-in panel ------------------------------------------------
+//  #menuToggle keeps the checkbox/sibling-list structure the CSS and app.js
+//  both depend on.
+#menuToggle {
+    display: none;
+    position: relative;
+    z-index: 2;
+    order: 3;
+
+    .breakpoint-large-down({
+        display: block;
+    });
+
+    input[type="checkbox"] {
+        position: absolute;
+        top: -7px;
+        left: -7px;
+        width: 40px;
+        height: 40px;
+        margin: 0;
+        opacity: 0;
+        cursor: pointer;
+        z-index: 3;
+        -webkit-touch-callout: none;
+    }
+
+    // The three bars.
+    > span {
+        display: block;
+        width: 26px;
+        height: 2px;
+        margin-bottom: 6px;
+        position: relative;
+        background: @tx-white;
+        border-radius: 2px;
+        transform-origin: 4px 0;
+        .transition(transform @tx-speed-slow @tx-ease, opacity @tx-speed ease, background @tx-speed ease);
+
+        &:first-child {
+            transform-origin: 0 0;
+        }
+    }
+
+    input[type="checkbox"]:checked ~ span {
+        opacity: 1;
+        transform: rotate(45deg) translate(-1px, -1px);
+        background: @tx-white;
+
+        &:nth-child(3) {
+            opacity: 0;
+            transform: rotate(0deg) scale(0.2, 0.2);
+        }
+
+        &:nth-child(4) {
+            transform: rotate(-45deg) translate(0, -1px);
+        }
+    }
+
+    .navbar-nav {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 320px;
+        max-width: 88vw;
+        height: 100vh;
+        margin: 0;
+        padding: 110px 28px 40px;
+        box-sizing: border-box;
+        list-style: none;
+        background: @tx-black;
+        overflow-y: auto;
+        display: none;
+
+        .nav-item {
+            list-style: none;
+            border-bottom: 1px solid @tx-on-dark-12;
+        }
+
+        a {
+            display: block;
+            padding: 16px 0;
+            color: @tx-on-dark-88;
+            font-family: @tx-font-display;
+            font-size: 17px;
+            font-weight: 600;
+            text-decoration: none;
+
+            &:hover,
+            &:focus,
+            &.active {
+                color: @tx-orange-bright;
+            }
+        }
+
+        .dropdown-menu {
+            margin: 0 0 12px;
+            padding: 0 0 0 14px;
+            list-style: none;
+
+            a {
+                padding: 10px 0;
+                font-size: 15px;
+                font-weight: 500;
+                color: @tx-on-dark-62;
+            }
+        }
+    }
+}
+
+// -- Search overlay ---------------------------------------------------------
+#search.tx-search {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: @zindex-fixed + 1;
+    background: @tx-black;
+    padding: 26px @tx-gutter;
+    box-sizing: border-box;
+
+    .breakpoint-medium-down({
+        padding: 20px @tx-gutter-sm;
+    });
+
+    .tx-search__inner {
+        max-width: @tx-container;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    form {
+        flex: 1 1 auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    input[type="text"] {
+        flex: 1 1 auto;
+        height: 48px;
+        padding: 0 16px;
+        border: 1px solid @tx-on-dark-22;
+        border-radius: @tx-radius-sm;
+        background: @tx-on-dark-05;
+        color: @tx-white;
+        font-family: @tx-font-display;
+        font-size: @tx-copy-size;
+
+        &::placeholder {
+            color: @tx-on-dark-50;
+        }
+
+        &:focus {
+            outline: 2px solid @tx-orange;
+            outline-offset: 1px;
+        }
+    }
+}
+
+// The layout reserves room for the fixed bar on every page that does not put
+// a full-bleed hero underneath it.
+body:not(.tx-has-hero) #layout-content {
+    padding-top: 78px;
+}

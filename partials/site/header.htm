@@ -1,0 +1,138 @@
+[menu]
+start = "id-1"
+activeNode = 0
+listItemClasses = "nav-item"
+primaryClasses = "navbar-nav"
+secondaryClasses = "dropdown-menu"
+numberOfLevels = 2
+
+[jumbotron]
+jumbotron = "intro"
+background = "transperant"
+templates = "template1"
+description_limit = 0
+
+[menu login]
+start = "id-27"
+activeNode = "id-25"
+listItemClasses = "item"
+primaryClasses = "nav nav-pills"
+secondaryClasses = "dropdown-menu"
+numberOfLevels = 2
+
+[localePicker]
+forceUrl = 0
+==
+<?php
+use RainLab\Translate\Classes\Translator;
+
+function onSwitchLocale(){
+    $translator = Translator::setLocale(post('locale'),true);
+}
+?>
+==
+{#
+    TETTRIX header.
+
+    Two states from the canvas: transparent over the homepage hero, and a
+    solid 78px dark bar everywhere else. app.js adds `.scrolled` once the page
+    scrolls past the bar, so the transparent state paints itself in as soon as
+    the hero leaves the viewport.
+
+    id="headernavbar" is required by assets/js/app.js (it reads offsetHeight
+    unguarded), and the #menuToggle / .navbar-nav / #mobile-menu-toggle /
+    #search structure is what app.js and accessibility.js bind the burger and
+    the search overlay to.
+#}
+{% set tx_hero_pages = ['home'] %}
+{% set tx_has_hero = page_id in tx_hero_pages %}
+{% set tx_logo = this.theme.site_logo ? this.theme.site_logo.getPath() : ('assets/images/tettrix-logo.svg'|theme) %}
+
+<nav id="headernavbar" class="tx-header {{ tx_has_hero ? '' : 'tx-header--solid' }}" aria-label="Main navigation">
+
+    <a href="{{'home'|page}}" class="tx-header__brand" aria-label="{{ site_name }} - home">
+        <img src="{{ tx_logo }}" alt="{{ site_name }}" />
+    </a>
+
+    <div class="tx-header__nav">
+        {% component 'menu' %}
+    </div>
+
+<!--    <div class="tx-header__tools">-->
+<!--        <button type="button"-->
+<!--                class="tx-header__icon-btn search-btn"-->
+<!--                onclick="showSearchForm();"-->
+<!--                aria-label="Open search"-->
+<!--                aria-expanded="false"-->
+<!--                aria-controls="search">-->
+<!--            <svg width="18" height="18" viewBox="0 0 21.5 21.5" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">-->
+<!--                <path d="M16.3055 16.3056L20.75 20.75" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--                <path d="M18.5278 9.63889C18.5278 4.72969 14.5481 0.75 9.63889 0.75C4.72969 0.75 0.75 4.72969 0.75 9.63889C0.75 14.5481 4.72969 18.5278 9.63889 18.5278C14.5481 18.5278 18.5278 14.5481 18.5278 9.63889Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--            </svg>-->
+<!--            <span class="sr-only">Search</span>-->
+<!--        </button>-->
+<!--    </div>-->
+
+    {# Burger. The checkbox has to stay a sibling of the list the menu
+       component emits so the :checked ~ ul rule keeps working. #}
+    <div id="menuToggle">
+        <input type="checkbox" id="mobile-menu-toggle" aria-label="Main menu" aria-expanded="false" aria-controls="menu" />
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        {% component 'menu' %}
+    </div>
+
+    <div id="search" class="search tx-search" role="search" aria-label="Site search" style="display: none;">
+        <div class="tx-search__inner">
+            <form action="{{ url('search') }}" method="get">
+                <label for="search-input" class="sr-only">Search the site</label>
+                <input id="search-input" name="q" type="text" autocomplete="on" placeholder="Search TETTRIX">
+                <button type="submit" class="tx-btn">
+                    <span class="tx-btn__label">Search</span>
+                    <span class="tx-btn__icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+                    </span>
+                </button>
+            </form>
+            <button type="button" class="tx-header__icon-btn" onclick="hideSearchForm();" aria-label="Close search">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"></path></svg>
+            </button>
+        </div>
+    </div>
+
+</nav>
+
+{#
+    Page banner for the pages that have not been redesigned yet. home and news
+    render their own header treatment (the hero, and the article cover), so
+    they are excluded here.
+
+    The banner heading is the page H1, except on pages that render their own
+    (a news/blog/event detail title, or a page-specific heading). There it
+    degrades to a visually identical .hero-title so the document keeps exactly
+    one H1.
+#}
+{% set own_h1_pages = ['contact', '404', 'error', 'search', 'typography'] %}
+{% set detail_pages = ['news', 'blog', 'events'] %}
+{% set page_has_own_h1 = page_id in own_h1_pages or (page_id in detail_pages and (this.param.id or this.param.slug)) %}
+{% set tx_own_header_pages = ['home', 'news'] %}
+
+{% if this.theme.header_image and page_id not in tx_own_header_pages %}
+<div class="header-image {{page_id}}">
+    <div class="header-image-bar" style="background-image: url('{{this.theme.header_image.getPath()}}'); background-position: left center;">
+        <div class="jumbotron hero">
+            {# Same per-letter reveal as the homepage hero headline. #}
+            {% if page_has_own_h1 %}
+            <p class="hero-title underline white" id="page-title" data-tx-split>
+                {%if page_title%} {{page_title}} {%else%} {{site_name}} {%endif%}
+            </p>
+            {% else %}
+            <h1 class="underline white" id="page-title" data-tx-split>
+                {%if page_title%} {{page_title}} {%else%} {{site_name}} {%endif%}
+            </h1>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}

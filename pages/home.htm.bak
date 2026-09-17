@@ -1,0 +1,331 @@
+url = "/"
+layout = "default"
+title = "TETTRIX"
+is_hidden = 0
+meta_description = "TETTRIX - next-generation European taxonomic system, connecting knowledge, expertise and innovation for research, policy and society."
+robot_index = "index"
+robot_follow = "follow"
+==
+<?php
+use Pensoft\Articles\Models\Article;
+use Pensoft\Partners\Models\Partners;
+
+function onStart()
+{
+    // Featured news strip - three most recent published items.
+    $this['highlights'] = Article::news()
+        ->where('published', 'true')
+        ->descPublished()
+        ->take(3)
+        ->get();
+
+    // Consortium marquee. type=1 is the consortium filter pages/partners.htm
+    // already uses; only rows with a logo are worth rendering.
+    $this['partners'] = Partners::where('type', 1)
+        ->get()
+        ->filter(function ($partner) {
+            return (bool) $partner->cover;
+        })
+        ->values();
+}
+?>
+==
+{#
+    TETTRIX homepage - implements design/TETTRIX Homepage.dc.html.
+
+    Section order: Hero, From TETTRIs to TETTRIX (dark), Pillars, Satellite
+    projects, Featured news, Consortium.
+
+    The body copy is static because it is design copy with no matching CMS
+    field (the old vision/mission jumbotrons do not map onto these sections).
+    News and the consortium logos are CMS-driven.
+#}
+{% set tx_hero_image = this.theme.header_image ? this.theme.header_image.getPath() : ('assets/images/background-hero.jpg'|theme) %}
+
+{# ------------------------------------------------------------------ HERO #}
+<section class="tx-hero" aria-labelledby="hero-heading">
+    <div class="tx-hero__media">
+        <img src="{{ tx_hero_image }}" alt="" aria-hidden="true" />
+    </div>
+    <div class="tx-hero__scrim tx-hero__scrim--x"></div>
+    <div class="tx-hero__scrim tx-hero__scrim--y"></div>
+
+    <div class="tx-hero__body">
+        <h1 class="tx-hero__title" id="hero-heading">
+            Next-generation<br>
+            European<br>
+            <em>taxonomic</em> system
+        </h1>
+        <p class="tx-hero__lead">
+            Connecting knowledge, expertise and innovation for research, policy and society.
+        </p>
+    </div>
+
+    {% if this.theme.social_media %}
+    <nav class="tx-hero__social tx-social tx-social--rail" aria-label="Social media">
+        {% if this.theme.linkedin and this.theme.linkedin_url %}
+        <a href="{{ this.theme.linkedin_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on LinkedIn (opens in new window)">
+            <img src="{{ 'assets/images/linkedin.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.instagram and this.theme.instagram_url %}
+        <a href="{{ this.theme.instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Instagram (opens in new window)">
+            <img src="{{ 'assets/images/instagram.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.bluesky and this.theme.bluesky_url %}
+        <a href="{{ this.theme.bluesky_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Bluesky (opens in new window)">
+            <img src="{{ 'assets/images/bluesky-icon.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.facebook and this.theme.facebook_url %}
+        <a href="{{ this.theme.facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook (opens in new window)">
+            <img src="{{ 'assets/images/facebook.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.youtube and this.theme.youtube_url %}
+        <a href="{{ this.theme.youtube_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on YouTube (opens in new window)">
+            <img src="{{ 'assets/images/youtube.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</section>
+
+{# --------------------------------------------- FROM TETTRIs TO TETTRIX #}
+<section class="tx-section tx-section--dark tx-about" id="about" aria-labelledby="about-heading">
+    <div class="tx-about__head">
+        <h2 class="tx-section-title tx-about__title" id="about-heading">From TETTRIs to TETTRIX</h2>
+        <p class="tx-copy-dark">
+            TETTRIs has built important foundations for the future of European taxonomy by connecting
+            expertise, collections and data, developing new digital tools, strengthening training and
+            fostering partnerships across the science-policy interface and with the private sector.
+            These achievements provide a strong foundation for TETTRIX to build on and scale.
+        </p>
+        <a href="{{ 'about'|page }}" class="tx-btn">
+            <span class="tx-btn__label">Read more</span>
+            <span class="tx-btn__icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+            </span>
+        </a>
+    </div>
+
+    {# Placeholder imagery: the canvas ships empty image slots for this
+       collage. Swap these three files for the final photography. #}
+    <div class="tx-about__collage" aria-hidden="true">
+        <figure><img src="{{ 'assets/images/pasted-1788252088791-0.png'|theme }}" alt="" /></figure>
+        <figure><img src="{{ 'assets/images/pasted-1788264906694-0.png'|theme }}" alt="" /></figure>
+        <figure><img src="{{ 'assets/images/pasted-1788263385795-0.png'|theme }}" alt="" /></figure>
+    </div>
+
+    <figure class="tx-quote">
+        <svg class="tx-quote__mark" width="42" height="34" viewBox="0 0 42 34" aria-hidden="true" focusable="false"><path d="M0 34V19.6C0 13.7 1.3 8.9 3.9 5.3 6.5 1.8 10.4 0 15.5 0v6.6c-2.9 0-5 .9-6.4 2.6-1.3 1.7-2 4.2-2 7.4h9.7V34H0Zm25.8 0V19.6c0-5.9 1.3-10.7 3.9-14.3C32.3 1.8 36.2 0 41.3 0v6.6c-2.9 0-5 .9-6.3 2.6-1.4 1.7-2.1 4.2-2.1 7.4H42V34H25.8Z" /></svg>
+        <blockquote>
+            TETTRIX represents an important step forward for European taxonomy. By bringing together
+            expertise, collections, digital technologies and training, the project will reinforce
+            taxonomy&rsquo;s role as a cornerstone of biodiversity science and policy.
+        </blockquote>
+        <figcaption class="tx-quote__author">
+            <img class="tx-quote__avatar" src="{{ 'assets/images/ana-casino.png'|theme }}" alt="" aria-hidden="true" />
+            <span>
+                <span class="tx-quote__name">Ana Casino</span>
+                <span class="tx-quote__role">Project coordinator</span>
+            </span>
+        </figcaption>
+    </figure>
+</section>
+
+{# --------------------------------------------------------------- PILLARS #}
+<section class="tx-section tx-pillars" id="pillars" aria-labelledby="pillars-heading">
+    <div class="tx-inner tx-pillars__inner">
+        <div class="tx-section-head">
+            <h2 class="tx-section-title" id="pillars-heading">TETTRIX Pillars</h2>
+            <p class="tx-section-intro">
+                Four connected lines of work that carry the project from infrastructure to impact.
+            </p>
+        </div>
+
+        <div class="tx-pillars__grid">
+            {% set pillars = [
+                { icon: 'integrate.svg',   title: 'Integrate',   text: 'Connect data, tools, expertise and services through one coherent, accessible infrastructure.' },
+                { icon: 'transform.svg',   title: 'Transform',   text: 'Turn species-level information into actionable knowledge for biodiversity, climate and health.' },
+                { icon: 'upskill.svg',     title: 'Upskill',     text: 'Equip current and future taxonomists with training, digital skills and new career pathways.' },
+                { icon: 'demonstrate.svg', title: 'Demonstrate', text: 'Test and validate innovative tools, workflows and training through cascade-funded projects.' }
+            ] %}
+
+            {% for pillar in pillars %}
+            <article class="tx-card tx-arrow-card">
+                <div class="tx-card__body">
+                    <img class="tx-card__icon" src="{{ ('assets/images/' ~ pillar.icon)|theme }}" alt="" aria-hidden="true" width="46" height="46" />
+                    <div>
+                        <h3 class="tx-card__title">{{ pillar.title }}</h3>
+                        <p class="tx-card__text">{{ pillar.text }}</p>
+                    </div>
+                </div>
+                <div class="tx-card__foot">
+                    <div class="tx-card__rule"></div>
+                    <div class="tx-card__action">
+                        <span>Explore pillar</span>
+                        <span class="tx-arrow" aria-hidden="true">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l4 4-4 4"></path></svg>
+                        </span>
+                    </div>
+                </div>
+                <a class="tx-card__link" href="{{ 'work-packages'|page }}">
+                    <span class="sr-only">Explore pillar: {{ pillar.title }}</span>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{# ----------------------------------------------------- SATELLITE PROJECTS #}
+<section class="tx-section tx-satellites" id="satellites" aria-labelledby="satellites-heading">
+    <div class="tx-inner tx-satellites__inner">
+        <div class="tx-section-head tx-section-head--top">
+            <h2 class="tx-section-title" id="satellites-heading">Satellite<br>projects</h2>
+            <div class="tx-satellites__aside">
+                <p class="tx-copy">
+                    With a &euro;2.4M cascade-funding programme, TETTRIX will support 19&ndash;37 Satellite
+                    projects across Europe. Covering priorities such as invasive alien species,
+                    climate-indicator taxa, dark taxa, citizen science, and soil, freshwater and marine
+                    biodiversity, the projects will test new approaches and feed validated tools, data and
+                    training resources into the TETTRIX Marketplace and Academy.
+                </p>
+                <a href="{{ 'case-studies'|page }}" class="tx-btn">
+                    <span class="tx-btn__label">Check out the previous Satellites</span>
+                    <span class="tx-btn__icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        <div class="tx-satellites__grid">
+            <article class="tx-satellites__call">
+                <div class="tx-satellites__call-body">
+                    <span class="tx-pill">Call 01</span>
+                    <div>
+                        <h3 class="tx-satellites__call-title">Upgrade of taxonomic capacity</h3>
+                        <p class="tx-satellites__call-text">
+                            <strong>For who?</strong> Projects that will validate and implement new tools and
+                            workflows, including AI, digitisation, and approaches for dark taxa, to advance
+                            innovation and strengthen taxonomic capacity.
+                        </p>
+                    </div>
+                </div>
+            </article>
+
+            <article class="tx-satellites__call">
+                <div class="tx-satellites__call-body">
+                    <span class="tx-pill">Call 02</span>
+                    <div>
+                        <h3 class="tx-satellites__call-title">Enlargement of taxonomic capacity</h3>
+                        <p class="tx-satellites__call-text">
+                            <strong>For who?</strong> Projects that will validate and implement new tools and
+                            workflows, including AI, digitisation, and approaches for dark taxa, to advance
+                            innovation and strengthen taxonomic capacity.
+                        </p>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+{# ---------------------------------------------------------- FEATURED NEWS #}
+{% if highlights|length %}
+<section class="tx-section tx-featured" id="news" aria-labelledby="featured-heading">
+    <div class="tx-inner tx-featured__inner">
+        <div class="tx-section-head">
+            <h2 class="tx-section-title" id="featured-heading">Featured news</h2>
+            <a href="{{ 'news'|page }}" class="tx-btn">
+                <span class="tx-btn__label">All news</span>
+                <span class="tx-btn__icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+                </span>
+            </a>
+        </div>
+
+        <div class="tx-featured__grid">
+            {% for article in highlights %}
+            <article class="tx-news-card tx-arrow-card">
+                <div class="tx-news-card__media">
+                    {% if article.cover %}
+                    <img src="{{ article.cover.path }}" alt="" aria-hidden="true" />
+                    {% endif %}
+                </div>
+                <div class="tx-news-card__body">
+                    <time class="tx-eyebrow" datetime="{{ article.published_at|date('Y-m-d') }}">
+                        {{ article.published_at|date('d F Y') }}
+                    </time>
+                    <h3 class="tx-news-card__title">{{ article.title|striptags }}</h3>
+                    <div class="tx-news-card__foot">
+                        <div class="tx-news-card__rule"></div>
+                        <div class="tx-news-card__action">
+                            <span>Read more</span>
+                            <span class="tx-arrow" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l4 4-4 4"></path></svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <a class="tx-news-card__link" href="{{ 'news'|page }}/{{ article.slug }}">
+                    <span class="sr-only">Read more: {{ article.title|striptags }}</span>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------- CONSORTIUM #}
+<section class="tx-section tx-section--last tx-consortium" aria-labelledby="consortium-heading">
+    <div class="tx-consortium__inner">
+        <div class="tx-consortium__head">
+            <h2 class="tx-section-title" id="consortium-heading">Consortium</h2>
+            <p class="tx-consortium__text">
+                TETTRIX brings together diverse organisations across the science-policy interface, the
+                private sector, universities, research organisations and economic sectors, combining
+                different perspectives, expertise and approaches towards a common goal.
+            </p>
+        </div>
+
+        {% if partners|length %}
+        {#
+            The track is rendered twice: the keyframe translates it by -50%, so
+            the second copy is what makes the loop seamless. The duplicate is
+            decorative, hence aria-hidden on the wrapper and a plain list of
+            names for assistive tech.
+        #}
+        <div class="tx-marquee">
+            <div class="tx-marquee__track" aria-hidden="true">
+                {% for pass in 1..2 %}
+                {% for partner in partners %}
+                <div class="tx-marquee__item">
+                    <img src="{{ partner.cover.path }}" alt="" />
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="tx-marquee__fade tx-marquee__fade--left"></div>
+            <div class="tx-marquee__fade tx-marquee__fade--right"></div>
+        </div>
+
+        <h3 class="sr-only">Consortium partners</h3>
+        <ul class="sr-only">
+            {% for partner in partners %}
+            <li>
+                {% if partner.instituion_url %}
+                <a href="{{ partner.instituion_url }}" target="_blank" rel="noopener noreferrer">{{ partner.instituion ?: partner.title }}</a>
+                {% else %}
+                {{ partner.instituion ?: partner.title }}
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</section>

@@ -1,0 +1,53 @@
+{#
+    Theme override of plugins/pensoft/library/components/librarypage/templates/template5.htm.
+
+    Identical to the plugin template except for the download href: it now points
+    at the "download" page so the URL carries the publication's real file name
+    instead of the hashed disk name, which is what Matomo reports. The plugin's
+    "add_file_name" property is therefore no longer needed here - the name is
+    part of the path, not a fragment.
+#}
+<div class="library-item-top"></div>
+<div class="library-item">
+	<div class="row">
+		<div class="col-xs-12 col-md-9">
+			<div class="library-type-label">
+                <span class="doc_year">{{record.year_attr}} |</span>
+                <span class="doc_type">{{record.type_attr |_}}</span></div>
+			<h3 class="card-title">{{ record.title }}</h3>
+			<div class="body">
+				{% partial __SELF__ ~ "::libraries-content" label="Authors:"|_ value=record.authors %}<br>
+
+                {% if record.type == 5 %}
+                {% if record.status == 1 %}
+                {% set status = 'Approved' %}
+                {% else %}
+                {% set status = 'Subject to change' %}
+                {% endif %}
+                {% else %}
+                {% set status = record.status_attr %}
+                {% endif %}
+
+                {% partial __SELF__ ~ "::libraries-content" label="Status:"|_ value=status |_ %}
+				{% partial __SELF__ ~ "::libraries-content" label="Journal:"|_ value=record.journal_title %}
+				{% partial __SELF__ ~ "::libraries-content" label="Proceedings:"|_ value=record.proceedings_title |_ %}
+				{% partial __SELF__ ~ "::libraries-content" label="Monograph:"|_ value=record.monograph_title %}
+                {% partial __SELF__ ~ "::libraries-content" label="Deliverable title:"|_ value=record.deliverable_title %}
+                {% partial __SELF__ ~ "::libraries-content" label="Deliverable number:"|_ value=record.deliverable_number %}
+				{% partial __SELF__ ~ "::libraries-content" label="Project:"|_ value=record.project_title %}
+				{% partial __SELF__ ~ "::libraries-content" label="Volume/Issue:"|_ value=record.volume_issue %}
+				{% partial __SELF__ ~ "::libraries-content" label="Publisher:"|_ value=record.publisher  %}
+				{% partial __SELF__ ~ "::libraries-content" label="Place:"|_ value=record.place  %}
+				{% partial __SELF__ ~ "::libraries-content" label="City:"|_ value=record.city  %}
+				{% partial __SELF__ ~ "::libraries-content" label="Pages:"|_ value=record.pages  %}
+				<br>{% partial __SELF__ ~ "::libraries-content" label="URL/DOI:"|_ value=record.doi is_link=true  %}
+			</div>
+		</div>
+
+		{% if record.file %}
+		<div class="col-xs-12 col-md-3 end-xs end-md">
+			<a target="_blank" href="{{ partial('components/download-url', { file: record.file, name: record.title }) }}" class="btn btn-primary no-margin"><i class="pr normal p-download" aria-hidden="true"></i>{{'Download' |_}}<span class="sr-only"> {{ record.title }}</span> ({{(record.file.file_size / 1024 / 1024 )|round(2)}} MB){% partial 'components/new-tab-hint' %}</a>
+		</div>
+		{% endif %}
+	</div>
+</div>

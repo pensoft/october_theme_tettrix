@@ -1,0 +1,26 @@
+url = "/get-involved"
+layout = "default"
+title = "Get involved"
+
+[siteSearchInclude]
+
+[jumbotron]
+jumbotron = "get-involved-intro"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[get_involved_form]
+message_label = "Thank you for contacting us!"
+
+[session]
+security = "user"
+redirect = "home"
+==
+{% component 'siteSearchInclude' %}
+{% component 'session' %}
+<h1 class="underline">Get involved</h1>
+<div class="container" data-aos="fade-up">
+{% component 'jumbotron' %}
+{% component 'get_involved_form' %}
+</div>

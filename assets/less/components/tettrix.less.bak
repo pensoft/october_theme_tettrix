@@ -1,0 +1,975 @@
+// ===========================================================================
+//  TETTRIX design system primitives
+//  ---------------------------------------------------------------------------
+//  Everything here is namespaced `tx-`. The theme carries ~3k lines of older
+//  DeCrises CSS; a fresh namespace means the new markup is styled only by
+//  these rules and the old selectors simply stop matching.
+// ===========================================================================
+
+// -- Section scaffolding ----------------------------------------------------
+.tx-section {
+    padding: @tx-section-gap @tx-gutter 0;
+    background: @tx-white;
+
+    .breakpoint-large-down({
+        padding: 78px @tx-gutter-md 0;
+    });
+    .breakpoint-medium-down({
+        padding: 60px @tx-gutter-sm 0;
+    });
+
+    &--dark {
+        background: @tx-black;
+        color: @tx-white;
+        padding: @tx-section-gap-dark @tx-gutter 190px;
+
+        .breakpoint-large-down({
+            padding: 100px @tx-gutter-md 110px;
+        });
+        .breakpoint-medium-down({
+            padding: 72px @tx-gutter-sm 80px;
+        });
+    }
+
+    &--last {
+        padding-bottom: 140px;
+
+        .breakpoint-medium-down({
+            padding-bottom: 80px;
+        });
+    }
+}
+
+.tx-inner {
+    max-width: @tx-container;
+    margin: 0 auto;
+}
+
+// Title left, supporting paragraph right - the header used by Pillars,
+// Satellite projects and Featured news.
+.tx-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+
+    .breakpoint-large-down({
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+    });
+
+    &--top {
+        align-items: flex-start;
+        gap: 60px;
+    }
+}
+
+.tx-section-title {
+    margin: 0;
+    font-family: @tx-font-display;
+    font-size: @tx-section-size;
+    font-weight: 600;
+    line-height: @tx-section-lh;
+    letter-spacing: @tx-section-ls;
+    color: @tx-ink;
+
+    .breakpoint-large-down({
+        font-size: 40px;
+        line-height: 43px;
+    });
+    .breakpoint-medium-down({
+        font-size: 32px;
+        line-height: 35px;
+        letter-spacing: -0.4px;
+    });
+
+    .tx-section--dark & {
+        color: @tx-white;
+    }
+}
+
+.tx-section-intro {
+    max-width: 345px;
+    color: @tx-ink-62;
+    font-size: @tx-copy-size;
+    line-height: @tx-copy-lh;
+
+    .breakpoint-large-down({
+        max-width: 100%;
+    });
+}
+
+.tx-copy {
+    color: @tx-ink-65;
+    font-size: 18px;
+    line-height: 29.7px;
+}
+
+.tx-copy-dark {
+    color: @tx-on-dark-62;
+    font-size: @tx-copy-size;
+    line-height: @tx-copy-lh;
+}
+
+// -- Eyebrow / date label ---------------------------------------------------
+.tx-eyebrow {
+    display: block;
+    color: @tx-orange;
+    font-family: @tx-font-body;
+    font-size: @tx-eyebrow-size;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: @tx-eyebrow-ls;
+}
+
+.tx-meta {
+    color: @tx-ink-40;
+    font-family: @tx-font-body;
+    font-size: @tx-eyebrow-size;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+}
+
+// -- Gradient pill badge ----------------------------------------------------
+.tx-pill {
+    align-self: flex-start;
+    display: inline-block;
+    padding: 5px 11px;
+    border-radius: @tx-radius-pill;
+    background: @tx-pill-gradient;
+    color: @tx-white;
+    font-family: @tx-font-body;
+    font-size: @tx-eyebrow-size;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
+// -- Primary button ---------------------------------------------------------
+//  Orange pill with a white rounded square holding the chevron.
+//
+//  Hover runs the canvas [data-fast] treatment (the rules in the <style> block
+//  of design/TETTRIX Homepage.dc.html - support.js has nothing to do with it):
+//  the button lifts 4px with an orange glow, and the label rolls letter by
+//  letter. The roll works because `text-shadow` paints a copy of each letter
+//  exactly one line-box below it; `overflow: hidden` keeps that copy out of
+//  sight until the letter translates up and the copy takes its place. A
+//  per-letter transition-delay staggers it left to right.
+//
+//  The canvas uses a 15px box for 15px text, which clips descenders. 20px
+//  gives p/g/y room without changing the button height (the 38px icon sets
+//  that). Travel, line-height and shadow offset must stay equal.
+@tx-btn-roll: 20px;
+@tx-btn-stagger: 0.02s;
+
+.tx-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    width: fit-content;
+    background: @tx-orange;
+    border: 0;
+    border-radius: @tx-radius;
+    padding: 6px 6px 6px 18px;
+    color: @tx-white;
+    font-family: @tx-font-display;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    .transition(~"transform @{tx-speed-slow} ease, box-shadow @{tx-speed-slow} ease, background @{tx-speed-slow} ease");
+
+    &:hover,
+    &:focus {
+        background: @tx-orange-hover;
+        color: @tx-white;
+        transform: translateY(-4px);
+        .box-shadow(0, 6px, 22px, -4px, rgba(255, 142, 62, .55));
+    }
+
+    // Pre-split state, and the permanent state when JS is off or the visitor
+    // asked for reduced motion.
+    &__label {
+        display: inline-block;
+    }
+
+    // assets/js/tettrix.js adds this class once it has wrapped every
+    // character in its own span.
+    &__label--split {
+        display: flex;
+        overflow: hidden;
+        line-height: @tx-btn-roll;
+        text-shadow: 0 @tx-btn-roll 0 currentColor;
+
+        > span {
+            display: block;
+            backface-visibility: hidden;
+            .transition(transform @tx-speed-slow ease);
+            transition-delay: calc(~"var(--tx-i, 0) *" @tx-btn-stagger);
+        }
+    }
+
+    // Spaces need an explicit width once they are flex items.
+    &__space {
+        width: .3em;
+    }
+
+    &:hover &__label--split > span,
+    &:focus-visible &__label--split > span {
+        transform: translateY(-@tx-btn-roll);
+    }
+
+    &__icon {
+        flex: 0 0 auto;
+        width: 38px;
+        height: 38px;
+        background: @tx-white;
+        border-radius: @tx-radius-xs;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+            stroke: @tx-ink;
+        }
+    }
+
+    &--block {
+        display: flex;
+        justify-content: space-between;
+    }
+}
+
+// -- Arrow affordance -------------------------------------------------------
+.tx-arrow {
+    width: 30px;
+    height: 30px;
+    border: 1px solid @tx-line-faint;
+    border-radius: @tx-radius-xs;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    .transition(~"background @{tx-speed} ease, border-color @{tx-speed} ease");
+
+    svg {
+        stroke: @tx-ink;
+        .transition(stroke @tx-speed ease);
+    }
+
+    &--md {
+        width: 34px;
+        height: 34px;
+        border-radius: @tx-radius-sm;
+    }
+
+    &--lg {
+        width: 44px;
+        height: 44px;
+        border-radius: 22px;
+        border-color: @tx-ink-25;
+        background: transparent;
+        cursor: pointer;
+
+        &:hover {
+            background: @tx-ink-06;
+        }
+
+        &[disabled] {
+            opacity: .35;
+            cursor: default;
+        }
+    }
+}
+
+.tx-arrow-card:hover .tx-arrow:not(.tx-arrow--lg) {
+    background: @tx-orange;
+    border-color: @tx-orange;
+
+    svg {
+        stroke: @tx-white;
+    }
+}
+
+// -- Card -------------------------------------------------------------------
+.tx-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background: @tx-white;
+    border: 1px solid @tx-line;
+    border-radius: @tx-radius-sm;
+    padding: 21px 25px 24px;
+    box-sizing: border-box;
+    .transition(~"box-shadow @{tx-speed} ease, transform @{tx-speed} ease");
+
+    &:hover {
+        .box-shadow(0, 12px, 32px, 0, rgba(5, 4, 29, .09));
+        transform: translateY(-3px);
+    }
+
+    &__body {
+        display: flex;
+        flex-direction: column;
+        gap: 17px;
+    }
+
+    &__icon {
+        display: block;
+        width: 46px;
+        height: 46px;
+    }
+
+    &__title {
+        margin: 0;
+        font-family: @tx-font-display;
+        font-size: @tx-card-title-size;
+        font-weight: 600;
+        line-height: @tx-card-title-lh;
+        letter-spacing: -0.4px;
+        color: @tx-ink;
+    }
+
+    &__text {
+        color: @tx-ink-65;
+        font-family: @tx-font-body;
+        font-size: @tx-small-size;
+        line-height: @tx-small-lh;
+    }
+
+    &__foot {
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+        margin-top: auto;
+        padding-top: 22px;
+    }
+
+    &__rule {
+        height: 1px;
+        background: @tx-line-soft;
+    }
+
+    &__action {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: @tx-label-size;
+        font-weight: 700;
+        color: @tx-ink;
+    }
+
+    // Whole-card control: one overlay element keeps a single tab stop per card
+    // without nesting interactive elements inside each other. It is an <a> on
+    // cards that navigate and a <button> on the pillar cards, which open a
+    // drawer - hence the button reset.
+    &__link {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+        border-radius: inherit;
+        padding: 0;
+        border: 0;
+        background: none;
+        cursor: pointer;
+        -webkit-appearance: none;
+        appearance: none;
+
+        &:focus-visible {
+            outline: 3px solid @tx-orange;
+            outline-offset: 3px;
+        }
+    }
+}
+
+// -- News card --------------------------------------------------------------
+//  Shared by the homepage "Featured news" strip and the news index grid.
+.tx-news-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid @tx-ink-12;
+    border-radius: @tx-radius-md;
+    overflow: hidden;
+    background: @tx-white;
+    .transition(~"box-shadow @{tx-speed} ease, transform @{tx-speed} ease");
+
+    &:hover {
+        .box-shadow(0, 12px, 32px, 0, rgba(5, 4, 29, .09));
+        transform: translateY(-3px);
+    }
+
+    &__media {
+        height: 232px;
+        background: @tx-line-soft;
+        overflow: hidden;
+        flex: 0 0 auto;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            .transition(transform @tx-speed-slow ease);
+        }
+    }
+
+    &:hover &__media img {
+        transform: scale(1.04);
+    }
+
+    &__body {
+        padding: 24px 23px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        flex: 1 1 auto;
+    }
+
+    &__title {
+        margin: 0;
+        font-family: @tx-font-display;
+        font-size: 19px;
+        font-weight: 700;
+        line-height: 24.7px;
+        color: @tx-ink;
+    }
+
+    &__foot {
+        margin-top: auto;
+        padding-top: 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 13px;
+    }
+
+    &__rule {
+        height: 1px;
+        background: @tx-line-soft;
+    }
+
+    &__action {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: @tx-label-size;
+        font-weight: 700;
+        color: @tx-ink;
+    }
+
+    &__link {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        z-index: 1;
+
+        &:focus-visible {
+            outline: 3px solid @tx-orange;
+            outline-offset: 3px;
+        }
+    }
+}
+
+// -- Logo marquee -----------------------------------------------------------
+@keyframes tx-marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(-50% - 8px)); }
+}
+
+.tx-marquee {
+    position: relative;
+    width: 100%;
+    height: 118px;
+    overflow: hidden;
+
+    &__track {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        width: max-content;
+        padding: 4px 0;
+        animation: tx-marquee 60s linear infinite;
+    }
+
+    &:hover &__track {
+        animation-play-state: paused;
+    }
+
+    &__item {
+        flex: 0 0 auto;
+        width: 190px;
+        height: 110px;
+        border: 1px solid @tx-ink-12;
+        border-radius: @tx-radius-sm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        box-sizing: border-box;
+        background: @tx-white;
+
+        img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    &__fade {
+        position: absolute;
+        top: 0;
+        width: 120px;
+        height: 118px;
+        pointer-events: none;
+
+        &--left {
+            left: 0;
+            background: linear-gradient(90deg, @tx-white 0%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        &--right {
+            right: 0;
+            background: linear-gradient(270deg, @tx-white 0%, rgba(255, 255, 255, 0) 100%);
+        }
+    }
+}
+
+// -- Pull quote -------------------------------------------------------------
+.tx-quote {
+    max-width: 900px;
+    margin: @tx-section-gap-dark auto 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    text-align: center;
+
+    .breakpoint-medium-down({
+        margin-top: 80px;
+    });
+
+    &__mark {
+        fill: @tx-orange;
+        opacity: .9;
+    }
+
+    blockquote {
+        margin: 0;
+        color: @tx-on-dark-92;
+        font-size: 30px;
+        line-height: 44px;
+        font-weight: 500;
+        letter-spacing: -0.4px;
+
+        .breakpoint-medium-down({
+            font-size: 22px;
+            line-height: 34px;
+        });
+    }
+
+    &__author {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    &__avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex: 0 0 auto;
+    }
+
+    &__name {
+        display: block;
+        color: @tx-white;
+        font-size: @tx-copy-size;
+        font-weight: 700;
+        text-align: left;
+    }
+
+    &__role {
+        display: block;
+        color: @tx-on-dark-55;
+        font-family: @tx-font-body;
+        font-size: @tx-label-size;
+        text-align: left;
+    }
+}
+
+// -- Social icon buttons ----------------------------------------------------
+.tx-social {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    a {
+        width: 38px;
+        height: 38px;
+        border-radius: 19px;
+        background: @tx-on-dark-10;
+        border: 1px solid @tx-on-dark-22;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        .transition(~"background @{tx-speed} ease, border-color @{tx-speed} ease");
+
+        &:hover,
+        &:focus {
+            background: @tx-on-dark-22;
+            border-color: @tx-on-dark-50;
+        }
+
+        img {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    // Vertical rail floated over the hero.
+    &--rail {
+        flex-direction: column;
+        gap: 17px;
+
+        a {
+            width: 36px;
+            height: 36px;
+            border-radius: 18px;
+            background: @tx-on-dark-16;
+            border: 0;
+
+            &:hover,
+            &:focus {
+                background: @tx-on-dark-32;
+            }
+        }
+    }
+}
+
+// -- Drawer -----------------------------------------------------------------
+//  The right-hand slide-in panel the canvas opens from a pillar card.
+//
+//  Built on the native <dialog> deliberately: showModal() puts the panel in
+//  the top layer, so it clears the z-index: 9999 fixed header and the sticky
+//  footer without a z-index fight, and the browser handles Escape, the
+//  backdrop and making the rest of the page inert. assets/js/tettrix.js only
+//  opens it, closes it and restores focus.
+//
+//  The <dialog> IS the panel here - there is no inner wrapper - so the UA
+//  defaults for border/padding/margin/max-* all have to be reset.
+@keyframes tx-slide {
+    from { transform: translateX(100%); }
+    to   { transform: none; }
+}
+
+@keyframes tx-scrim {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.tx-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    width: 720px;
+    max-width: 92vw;
+    height: 100%;
+    max-height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: @tx-white;
+    color: @tx-ink;
+    font-family: @tx-font-display;
+    .box-shadow(-30px, 0, 80px, 0, rgba(5, 4, 29, .35));
+
+    &::backdrop {
+        background: rgba(5, 4, 29, 0.55);
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+    }
+
+    // A closed <dialog> is display:none by UA stylesheet, so the open state
+    // has to restore the layout mode.
+    &[open] {
+        display: flex;
+        flex-direction: column;
+        animation: tx-slide .42s @tx-ease;
+
+        &::backdrop {
+            animation: tx-scrim .3s ease;
+        }
+    }
+
+    &__head {
+        flex: 0 0 auto;
+        height: 66px;
+        padding: 0 30px;
+        border-bottom: 1px solid @tx-line-modal;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+
+        .breakpoint-medium-down({
+            padding: 0 20px;
+        });
+    }
+
+    &__close {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        border: 1px solid @tx-ink-18;
+        border-radius: @tx-radius-pill;
+        background: @tx-white;
+        font-family: @tx-font-display;
+        font-size: @tx-label-size;
+        font-weight: 600;
+        color: @tx-ink;
+        cursor: pointer;
+        .transition(background @tx-speed ease);
+
+        &:hover,
+        &:focus {
+            background: #F5F5F5;
+        }
+
+        svg {
+            stroke: @tx-ink;
+        }
+    }
+
+    &__body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        padding: 44px 42px 60px;
+        -webkit-overflow-scrolling: touch;
+
+        // Stops scrolling past the end of the panel from chaining to the
+        // document underneath. This replaces a page-level scroll lock - see
+        // the note below.
+        overscroll-behavior: contain;
+
+        .breakpoint-medium-down({
+            padding: 28px 20px 40px;
+        });
+    }
+
+    &__title {
+        margin: 0;
+        font-family: @tx-font-display;
+        font-size: 46px;
+        font-weight: 700;
+        line-height: 50px;
+        letter-spacing: -1.2px;
+        color: @tx-ink;
+
+        .breakpoint-medium-down({
+            font-size: 32px;
+            line-height: 36px;
+            letter-spacing: -0.6px;
+        });
+    }
+
+    &__text {
+        margin: 18px 0 0;
+        color: @tx-ink-70;
+        font-size: 17px;
+        line-height: 29px;
+    }
+
+    &__eyebrow {
+        margin: 40px 0 0;
+        color: @tx-orange;
+        font-family: @tx-font-body;
+        font-size: @tx-eyebrow-size;
+        font-weight: 700;
+        letter-spacing: 1.6px;
+        text-transform: uppercase;
+    }
+
+}
+
+// -- Accordion (the drawer's output list) -----------------------------------
+//  Each output row expands to reveal its description.
+//
+//  The reveal animates `grid-template-rows` from 0fr to 1fr. That is the one
+//  technique that transitions to intrinsic height without JS measuring
+//  scrollHeight, and it degrades cleanly: a browser that cannot interpolate
+//  it still applies the end state, so the row just opens instantly.
+.tx-acc {
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid @tx-line-rule;
+
+    &__item {
+        list-style: none;
+        margin: 0;
+        border-top: 1px solid @tx-line-rule;
+    }
+
+    &__heading {
+        margin: 0;
+        font-size: inherit;
+        font-weight: inherit;
+    }
+
+    &__trigger {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px 4px;
+        border: 0;
+        background: none;
+        text-align: left;
+        font-family: @tx-font-display;
+        font-size: 17px;
+        font-weight: 600;
+        color: @tx-ink;
+        cursor: pointer;
+        .transition(color @tx-speed ease);
+
+        &:hover,
+        &:focus-visible {
+            color: @tx-orange-hover;
+        }
+    }
+
+    // Lets a long output title wrap instead of squeezing the chevron.
+    // min-width: 0 is what allows a flex item to shrink below its content.
+    &__label {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    &__chevron svg {
+        .transition(transform @tx-speed-slow @tx-ease);
+    }
+
+    &__panel {
+        display: grid;
+        grid-template-rows: 0fr;
+        .transition(grid-template-rows @tx-speed-slow @tx-ease);
+    }
+
+    // The inner wrapper is what gets clipped; the grid row is what animates.
+    &__panel-inner {
+        overflow: hidden;
+    }
+
+    // Keyed off a class on the <li> rather than a sibling of the trigger: the
+    // trigger is wrapped in a heading (so the rows show up in the document
+    // outline), which means the panel is not its sibling. tettrix.js toggles
+    // this class alongside aria-expanded.
+    &__item.is-open {
+        .tx-acc__panel {
+            grid-template-rows: 1fr;
+        }
+
+        .tx-acc__chevron svg {
+            transform: rotate(90deg);
+        }
+    }
+
+    &__text {
+        margin: 0 4px 18px;
+        color: @tx-ink-70;
+        font-family: @tx-font-body;
+        font-size: 15.5px;
+        line-height: 25.58px;
+    }
+
+    &__link {
+        display: inline-block;
+        margin: 0 4px 20px;
+        color: @tx-orange;
+        font-family: @tx-font-display;
+        font-size: @tx-label-size;
+        font-weight: 700;
+        text-decoration: underline;
+
+        &:hover,
+        &:focus {
+            color: @tx-orange-hover;
+        }
+    }
+
+    // Row with nothing to reveal.
+    &__static {
+        margin: 0;
+        padding: 18px 4px;
+        color: @tx-ink;
+        font-size: 17px;
+        font-weight: 600;
+    }
+}
+
+// There is deliberately NO page-level scroll lock here.
+//
+// `overflow: hidden` on <html> removes the document's scrollable overflow, so
+// the browser clamps the scroll offset to 0 - the page jumps to the top the
+// moment the drawer opens, and you are still at the top after closing it.
+// Locking <body> instead has the same effect (body is the element holding all
+// the content, and html/body are height:100% in themes/master.less), and the
+// position:fixed variant needs scrollbar-width compensation on both body and
+// the fixed header to avoid a horizontal shift.
+//
+// None of it is needed: showModal() already makes the rest of the page inert,
+// the drawer is position:fixed so it is pinned to the viewport regardless of
+// scroll offset, and .tx-drawer__body carries overscroll-behavior: contain so
+// scrolling inside the panel does not chain to the document.
+
+// -- Respect reduced motion -------------------------------------------------
+@media (prefers-reduced-motion: reduce) {
+    .tx-marquee__track {
+        animation: none;
+    }
+
+    .tx-btn,
+    .tx-card,
+    .tx-arrow,
+    .tx-social a,
+    .tx-btn__label--split > span {
+        transition: none;
+    }
+
+    .tx-btn:hover,
+    .tx-card:hover {
+        transform: none;
+    }
+
+    .tx-drawer[open],
+    .tx-drawer[open]::backdrop {
+        animation: none;
+    }
+
+    .tx-acc__panel,
+    .tx-acc__chevron svg {
+        transition: none;
+    }
+
+    // tettrix.js skips the split entirely under reduced motion, so this is
+    // only a backstop for a label that was already split when the preference
+    // changed mid-session.
+    .tx-btn:hover .tx-btn__label--split > span,
+    .tx-btn:focus-visible .tx-btn__label--split > span {
+        transform: none;
+    }
+}

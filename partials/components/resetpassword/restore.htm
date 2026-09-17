@@ -1,0 +1,32 @@
+<form
+		class="ui form"
+		method="post"
+		data-request="onRestorePassword"
+		data-request-success="alert('Password reset request has been sent. Please check you email!');"
+        data-request-redirect="/login"
+		>
+	<div class="form-error-summary" tabindex="-1"></div>
+	<div class="field">
+		<label for="userRestoreEmail">
+			Email <span class="field-required-marker" aria-hidden="true">*</span>
+		</label>
+		<input name="email" type="email" id="userRestoreEmail" required autocomplete="email" placeholder="Enter your email">
+	</div>
+
+	<div class="mt-1 text-center">
+        <div class="button_su">
+                            <span class="su_button_circle desplode-circle">
+                            </span>
+            <button type="submit" class="button_su_inner">
+                              <span class="button_text_container">
+                                Restore password
+                              </span>
+            </button>
+        </div>
+	</div>
+
+	<div class="text-center">
+		<a class="btn btn-link" href="/login">Return to login</a>
+
+	</div>
+</form>

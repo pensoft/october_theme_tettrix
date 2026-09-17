@@ -1,0 +1,438 @@
+// ===========================================================================
+//  TETTRIX homepage
+//  ---------------------------------------------------------------------------
+//  Section order follows the canvas: Hero, From TETTRIs to TETTRIX (dark),
+//  Pillars, Satellite projects, Featured news, Consortium.
+// ===========================================================================
+
+// -- Hero -------------------------------------------------------------------
+.tx-hero {
+    position: relative;
+    height: 1024px;
+    max-height: 100vh;
+    min-height: 640px;
+    background: @tx-hero-black;
+    overflow: hidden;
+
+    .breakpoint-medium-down({
+        height: auto;
+        min-height: 560px;
+        max-height: none;
+    });
+
+    &__media {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+    }
+
+    // Two scrims: one left-to-right so the copy holds contrast, one
+    // top-and-bottom so the fixed header and the section seam below both sit
+    // on darker pixels.
+    &__scrim {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        pointer-events: none;
+
+        &--x {
+            background: linear-gradient(90deg, rgba(2, 6, 10, 0.6) 0%, rgba(2, 6, 10, 0.25) 45%, rgba(2, 6, 10, 0) 75%);
+        }
+
+        &--y {
+            background: linear-gradient(180deg, rgba(2, 6, 10, 0.35) 0%, rgba(2, 6, 10, 0) 22%, rgba(2, 6, 10, 0) 70%, rgba(2, 6, 10, 0.4) 100%);
+        }
+    }
+
+    &__body {
+        position: absolute;
+        left: @tx-gutter;
+        top: 366px;
+        max-width: 700px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        z-index: 3;
+
+        .breakpoint-huge-down({
+            top: auto;
+            bottom: 130px;
+        });
+        .breakpoint-large-down({
+            left: @tx-gutter-md;
+            right: @tx-gutter-md;
+            max-width: none;
+        });
+        .breakpoint-medium-down({
+            position: static;
+            padding: 150px @tx-gutter-sm 70px;
+            left: auto;
+            right: auto;
+            bottom: auto;
+        });
+    }
+
+    &__title {
+        margin: 0;
+        color: @tx-white;
+        font-family: @tx-font-display;
+        font-size: @tx-hero-size;
+        font-weight: 700;
+        line-height: @tx-hero-lh;
+        letter-spacing: @tx-hero-ls;
+
+        .breakpoint-huge-down({
+            font-size: 60px;
+            line-height: 62px;
+            letter-spacing: -1.4px;
+        });
+        .breakpoint-large-down({
+            font-size: 48px;
+            line-height: 50px;
+            letter-spacing: -1px;
+        });
+        .breakpoint-medium-down({
+            font-size: 34px;
+            line-height: 38px;
+            letter-spacing: -0.6px;
+        });
+
+        // The third line of the wordmark is orange in the canvas.
+        em {
+            font-style: normal;
+            color: @tx-orange-bright;
+        }
+    }
+
+    &__lead {
+        max-width: 660px;
+        color: @tx-on-dark-86;
+        font-size: 19px;
+        line-height: 30px;
+
+        .breakpoint-medium-down({
+            font-size: 16px;
+            line-height: 26px;
+        });
+    }
+
+    // The rail is a <nav>, and pages/news.less declares a global
+    // `nav:not(.navbar) { width: 100% }`. That stretched this box across the
+    // whole hero, which cancelled `right` and let .tx-social's
+    // `align-items: center` centre the icons.
+    //
+    // `nav:not(.navbar)` scores (0,1,1) - higher than a lone class - so the
+    // override has to be the descendant form to win on specificity rather
+    // than on source order.
+    & > &__social {
+        position: absolute;
+        right: @tx-gutter;
+        left: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        width: auto;
+        align-items: flex-end;
+        z-index: 3;
+
+        .breakpoint-large-down({
+            right: @tx-gutter-md;
+        });
+        .breakpoint-medium-down({
+            display: none;
+        });
+    }
+}
+
+// -- From TETTRIs to TETTRIX (dark) -----------------------------------------
+.tx-about {
+
+    // The per-section `.container` padding reset that used to live here is
+    // gone: the head carries .tx-cms now, which unwraps the component's
+    // wrappers for every section at once. See .tx-cms in components/tettrix.less.
+    &__head {
+        max-width: 585px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 32px;
+        text-align: center;
+
+        // The intro copy is CMS-authored (jumbotron `tettris-tettrix`), so it
+        // arrives as a bare <p> with no class to hang the treatment on.
+        p {
+            .tx-copy-dark();
+        }
+    }
+
+    &__title {
+        max-width: 470px;
+    }
+
+    // Three portrait tiles, the middle one dropped and each nudged off-axis.
+    &__collage {
+        max-width: 1294px;
+        margin: 96px auto 0;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 31px;
+        align-items: start;
+
+        .breakpoint-medium-down({
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 56px;
+        });
+
+        figure {
+            margin: 0;
+            height: 396px;
+            border-radius: @tx-radius;
+            overflow: hidden;
+            background: @tx-on-dark-05;
+
+            .breakpoint-large-down({
+                height: 280px;
+            });
+            .breakpoint-medium-down({
+                height: 200px;
+            });
+
+            img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+            // Rotation and scale are no longer set here: the scroll reveal in
+            // assets/js/tettrix.js drives transform/opacity/filter inline as
+            // you scroll (the canvas does the same - data-rot/data-delay on
+            // [data-reveal="1"]). Only the middle tile's offset is layout and
+            // stays in CSS.
+            //
+            // Nothing is hidden until the JS takes over, so with the script
+            // absent the three photos simply sit there, unrotated and visible.
+            &:nth-child(2) { margin-top: 190px; }
+
+            .breakpoint-medium-down({
+                // `transform` is not reset here any more - it is an inline
+                // style now, so CSS could not win anyway. The JS drops the
+                // tilt to 0 below this same breakpoint instead.
+                &:nth-child(2) {
+                    margin-top: 0;
+                }
+
+                &:nth-child(3) {
+                    grid-column: span 2;
+                }
+            });
+        }
+    }
+}
+
+// -- Pillars ----------------------------------------------------------------
+.tx-pillars {
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        gap: 47px;
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+
+        .breakpoint-large-down({
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        });
+        .breakpoint-medium-down({
+            grid-template-columns: minmax(0, 1fr);
+        });
+
+        .tx-card {
+            min-height: 386px;
+
+            .breakpoint-medium-down({
+                min-height: 0;
+            });
+        }
+    }
+}
+
+// -- Satellite projects -----------------------------------------------------
+.tx-satellites {
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        gap: 44px;
+    }
+
+    &__aside {
+        width: 613px;
+        flex: 0 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 33px;
+
+        .breakpoint-large-down({
+            width: 100%;
+        });
+    }
+
+    // Standalone line above the two call cards. .tx-satellites__inner is a
+    // flex column with a 44px gap, so this needs no margins of its own.
+    &__note {
+        .tx-copy();
+        text-align: center;
+    }
+
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 24px;
+
+        .breakpoint-medium-down({
+            grid-template-columns: minmax(0, 1fr);
+        });
+    }
+
+    &__call {
+        border: 1px solid @tx-line;
+        border-radius: @tx-radius-sm;
+        padding: 30px 34px 40px;
+        min-height: 250px;
+        box-sizing: border-box;
+
+        .breakpoint-medium-down({
+            padding: 24px 22px 28px;
+            min-height: 0;
+        });
+    }
+
+    &__call-body {
+        max-width: 620px;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+    }
+
+    &__call-title {
+        // 20px is the gap the canvas puts between the title and the copy.
+        margin: 0 0 20px;
+        font-family: @tx-font-display;
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 32.2px;
+        letter-spacing: -0.3px;
+        color: @tx-ink;
+
+        .breakpoint-medium-down({
+            font-size: 23px;
+            line-height: 27px;
+        });
+    }
+
+    &__call-text {
+        // base/typography.less gives every <p> a 20px bottom margin, which
+        // here just stacked onto the card's 40px bottom padding. The canvas
+        // uses a flex gap, so the copy has no trailing margin of its own.
+        // This is now the CMS host rather than the paragraph itself, but the
+        // reset still matters: .tx-cms zeroes the inner <p>, not the host.
+        margin: 0;
+        font-family: @tx-font-body;
+        font-size: 15.5px;
+        line-height: 25.58px;
+        color: @tx-ink-70;
+
+        strong {
+            font-weight: 700;
+            color: @tx-ink;
+        }
+    }
+}
+
+// -- Featured news ----------------------------------------------------------
+.tx-featured {
+    &__inner {
+        display: flex;
+        flex-direction: column;
+        gap: 50px;
+    }
+
+    &__controls {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+
+        .breakpoint-medium-down({
+            display: none;
+        });
+    }
+
+    // Horizontal scroller on desktop, natural stack on phones. The prev/next
+    // buttons scroll it by one card.
+    &__grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 24px;
+
+        .breakpoint-large-down({
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        });
+        .breakpoint-medium-down({
+            grid-template-columns: minmax(0, 1fr);
+        });
+    }
+}
+
+// -- Consortium -------------------------------------------------------------
+.tx-consortium {
+    padding-left: 130px;
+    padding-right: 130px;
+
+    .breakpoint-large-down({
+        padding-left: @tx-gutter-md;
+        padding-right: @tx-gutter-md;
+    });
+    .breakpoint-medium-down({
+        padding-left: @tx-gutter-sm;
+        padding-right: @tx-gutter-sm;
+    });
+
+    &__inner {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 51px;
+    }
+
+    &__head {
+        max-width: 764px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        text-align: center;
+    }
+
+    &__text {
+        color: @tx-ink-65;
+        font-size: 17px;
+        line-height: 28.05px;
+    }
+}

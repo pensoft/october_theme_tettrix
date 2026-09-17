@@ -1,0 +1,201 @@
+// ===========================================================================
+//  TETTRIX design tokens
+//  ---------------------------------------------------------------------------
+//  Source of truth: design/TETTRIX Homepage.dc.html + design/TETTRIX News
+//  Article.dc.html. Everything below the "Legacy" divider is kept because the
+//  older component/page stylesheets still reference those names; their values
+//  are remapped onto the tokens here so the whole theme follows the new
+//  palette instead of the DeCrises one.
+// ===========================================================================
+
+// -- Brand ------------------------------------------------------------------
+@tx-ink:              #05041D;  // primary text
+@tx-black:            #000102;  // dark sections + footer
+@tx-hero-black:       #0b0f14;  // hero image backstop
+@tx-white:            #ffffff;
+
+@tx-orange:           #FF8E3E;  // primary action
+@tx-orange-hover:     #F18233;
+@tx-orange-link:      #E0742A;  // body-copy link hover on light
+@tx-orange-bright:    #FF954A;  // nav / footer link hover on dark
+
+@tx-pill-gradient:    linear-gradient(90deg, #FF8E3E 0%, #74B683 54%, #BBFFB3 100%);
+
+// -- Ink alphas (light surfaces) --------------------------------------------
+@tx-ink-86:           rgba(5, 4, 29, 0.86);
+@tx-ink-78:           rgba(5, 4, 29, 0.78);
+@tx-ink-72:           rgba(5, 4, 29, 0.72);
+@tx-ink-70:           rgba(5, 4, 29, 0.70);
+@tx-ink-65:           rgba(5, 4, 29, 0.65);
+@tx-ink-62:           rgba(5, 4, 29, 0.62);
+@tx-ink-40:           rgba(5, 4, 29, 0.40);
+@tx-ink-25:           rgba(5, 4, 29, 0.25);
+@tx-ink-18:           rgba(5, 4, 29, 0.18);
+@tx-ink-12:           rgba(5, 4, 29, 0.12);
+@tx-ink-06:           rgba(5, 4, 29, 0.06);
+
+// -- White alphas (dark surfaces) -------------------------------------------
+@tx-on-dark-92:       rgba(255, 255, 255, 0.92);
+@tx-on-dark-90:       rgba(255, 255, 255, 0.90);
+@tx-on-dark-88:       rgba(255, 255, 255, 0.88);
+@tx-on-dark-86:       rgba(255, 255, 255, 0.86);
+@tx-on-dark-78:       rgba(255, 255, 255, 0.78);
+@tx-on-dark-62:       rgba(255, 255, 255, 0.62);
+@tx-on-dark-60:       rgba(255, 255, 255, 0.60);
+@tx-on-dark-55:       rgba(255, 255, 255, 0.55);
+@tx-on-dark-50:       rgba(255, 255, 255, 0.50);
+@tx-on-dark-42:       rgba(255, 255, 255, 0.42);
+@tx-on-dark-32:       rgba(255, 255, 255, 0.32);
+@tx-on-dark-22:       rgba(255, 255, 255, 0.22);
+@tx-on-dark-16:       rgba(255, 255, 255, 0.16);
+@tx-on-dark-12:       rgba(255, 255, 255, 0.12);
+@tx-on-dark-10:       rgba(255, 255, 255, 0.10);
+@tx-on-dark-05:       rgba(255, 255, 255, 0.05);
+@tx-on-dark-label:    #A1A1A1;  // footer column headings
+
+// -- Hairlines --------------------------------------------------------------
+@tx-line:             #E2E2E2;  // card borders
+@tx-line-soft:        #E1E0E3;  // in-card dividers
+@tx-line-faint:       #EFEFEF;  // arrow-button borders
+@tx-line-modal:       #ECECEC;
+@tx-line-rule:        #E9E9E9;
+
+// -- Typography -------------------------------------------------------------
+@tx-font-display:     'Mona Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+@tx-font-body:        'Montserrat', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+@tx-hero-size:        75px;   @tx-hero-lh:      76px;   @tx-hero-ls:  -2px;
+@tx-h1-size:          52px;   @tx-h1-lh:        56px;   @tx-h1-ls:    -1.4px;
+@tx-section-size:     52px;   @tx-section-lh:   54.6px; @tx-section-ls: -0.8px;
+@tx-h2-size:          28px;   @tx-h2-lh:        34px;
+@tx-card-title-size:  29px;   @tx-card-title-lh: 31.9px;
+@tx-lead-size:        21px;   @tx-lead-lh:      34px;
+@tx-body-size:        16.5px; @tx-body-lh:      30px;
+@tx-copy-size:        16px;   @tx-copy-lh:      25.6px;
+@tx-small-size:       14.5px; @tx-small-lh:     23.2px;
+@tx-label-size:       13px;
+@tx-eyebrow-size:     11px;   @tx-eyebrow-ls:   1.54px;
+
+// -- Radii ------------------------------------------------------------------
+@tx-radius-xs:        6px;
+@tx-radius-sm:        8px;
+@tx-radius:           10px;
+@tx-radius-md:        12px;
+@tx-radius-lg:        14px;
+@tx-radius-xl:        16px;
+@tx-radius-pill:      20px;
+
+// -- Rhythm -----------------------------------------------------------------
+@tx-container:        1292px;   // inner max-width of every section
+@tx-gutter:           74px;     // section side padding (desktop)
+@tx-gutter-md:        40px;
+@tx-gutter-sm:        20px;
+@tx-section-gap:      130px;    // vertical space between light sections
+@tx-section-gap-dark: 170px;
+
+// -- Motion -----------------------------------------------------------------
+@tx-ease:             cubic-bezier(0.22, 1, 0.36, 1);
+@tx-speed:            .22s;
+@tx-speed-slow:       .32s;
+
+
+// ===========================================================================
+//  Legacy variables
+//  Names kept so the pre-existing component/page stylesheets still compile;
+//  values now point at the TETTRIX palette above. The `!important` suffixes
+//  are part of the original values (they are interpolated into declarations),
+//  so they have to stay.
+// ===========================================================================
+
+@text-color-default: @tx-ink-65;
+@padding-base-space: 10px;
+@margin-base-space:20px;
+
+@padding-base-space-home: 15px;
+@margin-base-space-home: 0px;
+
+@margin-list-space:50px;
+@heading-space:100px;
+@rounded-base: @tx-radius-sm;
+@opacity-base: 65;
+@border-line-width: 1px;
+@border-line-style: solid;
+
+
+
+@zindex-dropdown:          1000;
+@zindex-sticky:            1020;
+@zindex-fixed:             9999;
+@zindex-modal-backdrop:    1040;
+@zindex-modal:             1050;
+@zindex-popover:           1060;
+@zindex-tooltip:           1070;
+
+@breakpoint-small-min-width: 576px;
+@breakpoint-medium-min-width: 768px;
+@breakpoint-large-min-width: 992px;
+@breakpoint-huge-min-width: 1200px;
+
+@breakpoint-small-max-width:575.98px;
+@breakpoint-medium-max-width:767.98px;
+@breakpoint-large-max-width:991.98px;
+@breakpoint-huge-max-width:1299.98px;
+@breakpoint-laptop-max-width:1370.98px;
+@breakpoint-screen-max-width:1590.98px;
+
+@primary-color:#FF8E3E!important;
+@secondary-color: #000102!important;
+@secondary-btn-color: #05041D!important;
+@success-color: #74B683!important;
+@link-color: #FF8E3E !important;
+@danger-color: #dc3545!important;
+@warning-color: #ffc107!important;
+@info-color: #A1A1A1!important;
+@light-color: #F6F6F7!important;
+@dark-color: #05041D!important;
+@yellow-color: #FF954A!important;
+@blue-color: #05041D!important;
+@green-color: #74B683!important;
+@footer-color: #000102!important;
+//@muted-color: #6c757d!important;
+
+@white-color: #ffffff!important;
+@transparent: rgba(0,0,0,0);
+@default-color: @dark-color;
+@muted-color: @default-color!important;
+@black-color: #000102;
+@border-color: #E2E2E2;
+@grey-color: #A1A1A1;
+@grey-btn-search-color: #05041D;
+@navbar-scrolled-color: #000102;
+@navbar-color: #05041D;
+
+@header-text-color: #FFFFFF;
+@body-text-color: #05041D;
+@heading-text-color: #05041D;
+@date-text-color: #FF8E3E;
+@link-text-color: #FF8E3E;
+@button-text-color: #FFFFFF;
+@button-background-color: #FF8E3E;
+
+@footer-text-color: #ffffff;
+// Components
+
+// Navbar
+@nav-link-active-color: #FF954A!important;
+@navbar-bkg-hover-color: #000102 !important;
+@navbar-dark-color: @black-color !important;
+@navbar-bkg-color: @navbar-scrolled-color !important;
+@navbar-font-color: #fff !important;
+@navbar-light-bkg-color: @white-color !important;
+
+// List
+@list-item-hover: #FF954A !important;
+
+
+// END Components
+
+// Theme
+
+// footer
+@footer-bkg-color: #000102!important;

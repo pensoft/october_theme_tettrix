@@ -1,0 +1,673 @@
+url = "/"
+layout = "default"
+title = "TETTRIX"
+is_hidden = 0
+meta_description = "TETTRIX - next-generation European taxonomic system, connecting knowledge, expertise and innovation for research, policy and society."
+robot_index = "index"
+robot_follow = "follow"
+
+; The homepage body copy lives in Pensoft.Jumbotron - see seed-jumbotron.sql
+; in the project root for the seed. Headings are deliberately not routed
+; through the component: it emits <div> wrappers, which are invalid inside an
+; <h1>/<h2>/<h3>, so every section keeps its own heading in the markup below
+; and no component sets the `title` property.
+;
+; `background` is set on each because the component adds the textured
+; .bg-secondary class whenever the property is null (see hasBackground() in
+; the plugin's component class). The value matches the spelling the rest of
+; the theme's pages already use.
+
+[jumbotron hero_lead]
+jumbotron = "home-hero-lead"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron from]
+jumbotron = "tettris-tettrix"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+; Body of the drawer the dark section's "Read more" opens. Kept as a separate
+; entry from `from` (the section's own intro) so the short teaser and the long
+; version can be edited independently.
+[jumbotron about_popup]
+jumbotron = "tettris-tettrix-popup-info"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron quote]
+jumbotron = "home-quote"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillars_intro]
+jumbotron = "home-pillars-intro"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron satellites_intro]
+jumbotron = "home-satellites-intro"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron calls_note]
+jumbotron = "home-satellites-calls-note"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron call_01]
+jumbotron = "home-satellites-call-01"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron call_02]
+jumbotron = "home-satellites-call-02"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron consortium_intro]
+jumbotron = "home-consortium"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+==
+<?php
+use Pensoft\Articles\Models\Article;
+use Pensoft\Partners\Models\Partners;
+use Pensoft\Initiatives\Models\Category as PillarCategory;
+use Pensoft\Initiatives\Models\Initiative;
+
+/**
+ * Card blurb, drawer intro and icon per pillar.
+ *
+ * The Initiatives plugin does not model any of this - pensoft_initiatives_
+ * categories is title/slug/sort_order/cover only - so it stays here, keyed by
+ * the category slug. Everything else on the Pillars section (titles, the
+ * output list and its descriptions) comes from the database.
+ */
+function pillarCopy()
+{
+    return [
+        'integrate' => [
+            'icon' => 'integrate.svg',
+            'text' => 'Connect data, tools, expertise and services through one coherent, accessible infrastructure.',
+            'description' => 'We will connect existing data, tools, expertise, and services through a coherent and accessible infrastructure. This will reduce fragmentation, improve collaboration and interoperability, and make taxonomic information easier to discover, access, and reuse.',
+        ],
+        'transform' => [
+            'icon' => 'transform.svg',
+            'text' => 'Turn species-level information into actionable knowledge for biodiversity, climate and health.',
+            'description' => 'We will turn species-level information into actionable knowledge for biodiversity, climate, and health. By strengthening links between science, policy, and the private sector, we will support evidence-based decision-making, sustainable business practices, and the effective implementation of biodiversity policies and regulations.',
+        ],
+        'upskill' => [
+            'icon' => 'upskill.svg',
+            'text' => 'Equip current and future taxonomists with training, digital skills and new career pathways.',
+            'description' => 'To secure the taxonomic capacity needed for effective biodiversity conservation, we will equip current and future taxonomists with advanced training, digital skills, recognised qualifications, and new career pathways. In doing so, we will strengthen the taxonomic workforce and its capacity to work across disciplines and connected fields of expertise, supporting a broader range of biodiversity challenges and future needs.',
+        ],
+        'demonstrate' => [
+            'icon' => 'demonstrate.svg',
+            'text' => 'Test and validate innovative tools, workflows and training through cascade-funded projects.',
+            'description' => 'Through cascade funding, we will test and validate innovative tools, workflows, and training approaches across priority areas such as dark taxa, climate-indicator taxa, invasive species, and underrepresented taxa and regions, generating evidence and practical solutions that can be adopted and scaled across Europe.',
+        ],
+    ];
+}
+
+function onStart()
+{
+    // Featured news strip - three most recent published items.
+    $this['highlights'] = Article::news()
+        ->where('published', 'true')
+        ->descPublished()
+        ->take(3)
+        ->get();
+
+    // Consortium marquee. type=1 is the consortium filter pages/partners.htm
+    // already uses; only rows with a logo are worth rendering.
+    $this['partners'] = Partners::where('type', 1)
+        ->get()
+        ->filter(function ($partner) {
+            return (bool) $partner->cover;
+        })
+        ->values();
+
+    // --- Pillars ---------------------------------------------------------
+    // Categories are the pillars, initiatives are that pillar's outputs.
+    // Both models carry the Sortable trait, whose global scope already
+    // orders by sort_order, so no explicit orderBy is needed. SoftDelete
+    // keeps trashed rows out.
+    //
+    // Category has no hasMany to Initiative (and the plugin is off limits),
+    // so the two are fetched separately and joined here.
+    // $this-> is required: October wraps a page's code section in a class and
+    // rewrites every `function` into `public function` (see
+    // modules/cms/classes/CodeParser.php), so pillarCopy() is a method here,
+    // not a global function.
+    $copy = $this->pillarCopy();
+    $byCategory = Initiative::get()->groupBy('category_id');
+
+    $pillars = PillarCategory::get()->map(function ($category) use ($copy, $byCategory) {
+        $slug = $category->slug;
+        $meta = isset($copy[$slug]) ? $copy[$slug] : [];
+
+        return [
+            'id' => $category->id,
+            'title' => $category->title,
+            'slug' => $slug,
+            'cover' => $category->cover,
+            'icon' => isset($meta['icon']) ? $meta['icon'] : null,
+            'text' => isset($meta['text']) ? $meta['text'] : null,
+            'description' => isset($meta['description']) ? $meta['description'] : null,
+            'items' => $byCategory->get($category->id, collect())->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'title' => $item->title,
+                    'description' => $item->description,
+                    'website' => $item->website,
+                ];
+            })->values()->all(),
+        ];
+    })->all();
+
+    // Nothing seeded yet: fall back to the design copy so the section still
+    // renders on a fresh install rather than disappearing.
+    if (empty($pillars)) {
+        foreach ($copy as $slug => $meta) {
+            $pillars[] = [
+                'id' => $slug,
+                'title' => ucfirst($slug),
+                'slug' => $slug,
+                'cover' => null,
+                'icon' => $meta['icon'],
+                'text' => $meta['text'],
+                'description' => $meta['description'],
+                'items' => [],
+            ];
+        }
+    }
+
+    $this['pillars'] = $pillars;
+}
+?>
+==
+{#
+    TETTRIX homepage - implements design/TETTRIX Homepage.dc.html.
+
+    Section order: Hero, From TETTRIs to TETTRIX (dark), Pillars, Satellite
+    projects, Featured news, Consortium.
+
+    The body copy is CMS-driven: every prose block is a Pensoft.Jumbotron
+    entry, wired up in the configuration section above and seeded by
+    seed-jumbotron.sql. Headings stay in the markup - the component wraps its
+    body in <div>s, which cannot legally sit inside a heading.
+
+    Each host element carries `tx-cms` next to its own class. That collapses
+    the component's .container-fluid/.container wrappers so the copy takes the
+    host's padding instead of the theme's default 58px - see .tx-cms in
+    assets/less/components/tettrix.less.
+
+    News, the pillars and the consortium logos are CMS-driven too.
+#}
+{% set tx_hero_image = this.theme.header_image ? this.theme.header_image.getPath() : ('assets/images/background-hero.jpg'|theme) %}
+
+{# ------------------------------------------------------------------ HERO #}
+<section class="tx-hero" aria-labelledby="hero-heading">
+    <div class="tx-hero__media">
+        <img src="{{ tx_hero_image }}" alt="" aria-hidden="true" />
+    </div>
+    <div class="tx-hero__scrim tx-hero__scrim--x"></div>
+    <div class="tx-hero__scrim tx-hero__scrim--y"></div>
+
+    {# data-tx-split runs the per-letter reveal from the canvas; data-tx-fade
+       brings the supporting line in behind it. The splitter keeps the <br>
+       line breaks and the <em> (the orange word) intact. #}
+    <div class="tx-hero__body">
+        <h1 class="tx-hero__title" id="hero-heading" data-tx-split>
+            Next-generation<br>
+            European<br>
+            <em>taxonomic</em> system
+        </h1>
+        <div class="tx-hero__lead tx-cms" data-tx-fade>
+            {% component 'hero_lead' %}
+        </div>
+    </div>
+
+    {% if this.theme.social_media %}
+    <nav class="tx-hero__social tx-social tx-social--rail" aria-label="Social media">
+        {% if this.theme.linkedin and this.theme.linkedin_url %}
+        <a href="{{ this.theme.linkedin_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on LinkedIn (opens in new window)">
+            <img src="{{ 'assets/images/linkedin.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.instagram and this.theme.instagram_url %}
+        <a href="{{ this.theme.instagram_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Instagram (opens in new window)">
+            <img src="{{ 'assets/images/instagram.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.bluesky and this.theme.bluesky_url %}
+        <a href="{{ this.theme.bluesky_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Bluesky (opens in new window)">
+            <img src="{{ 'assets/images/bluesky-icon.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.facebook and this.theme.facebook_url %}
+        <a href="{{ this.theme.facebook_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on Facebook (opens in new window)">
+            <img src="{{ 'assets/images/facebook.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+        {% if this.theme.youtube and this.theme.youtube_url %}
+        <a href="{{ this.theme.youtube_url }}" target="_blank" rel="noopener noreferrer" aria-label="Follow us on YouTube (opens in new window)">
+            <img src="{{ 'assets/images/youtube.svg'|theme }}" alt="" aria-hidden="true" />
+        </a>
+        {% endif %}
+    </nav>
+    {% endif %}
+</section>
+
+{# --------------------------------------------- FROM TETTRIs TO TETTRIX #}
+<section class="tx-section tx-section--dark tx-about" id="about" aria-labelledby="about-heading">
+    <div class="tx-about__head tx-cms">
+        <h2 class="tx-section-title tx-about__title" id="about-heading">From TETTRIs to TETTRIX</h2>
+        {% component 'from' %}
+        {# A <button> rather than a link, for the same reason as the pillar
+           cards: it opens a dialog instead of navigating. #}
+        <button type="button"
+                class="tx-btn"
+                data-tx-dialog="tx-about-more"
+                aria-haspopup="dialog">
+            <span class="tx-btn__label">Read more</span>
+            <span class="tx-btn__icon" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+            </span>
+        </button>
+    </div>
+
+    {#
+        Placeholder imagery: the canvas ships empty image slots for this
+        collage. Swap these three files for the final photography.
+
+        data-tx-reveal scrubs each tile in as you scroll - zoom, un-blur and
+        tilt. data-tx-rot/-delay carry the canvas's own per-tile values
+        (data-rot / data-delay on its [data-reveal="1"] nodes).
+    #}
+    <div class="tx-about__collage" aria-hidden="true">
+        <figure data-tx-reveal data-tx-rot="-7" data-tx-delay="0">
+            <img src="{{ 'assets/images/1-bear.jpg'|theme }}" alt="" />
+        </figure>
+        <figure data-tx-reveal data-tx-rot="5" data-tx-delay="0.12">
+            <img src="{{ 'assets/images/2-cat.jpg'|theme }}" alt="" />
+        </figure>
+        <figure data-tx-reveal data-tx-rot="-5" data-tx-delay="0.24">
+            <img src="{{ 'assets/images/3-rat.jpg'|theme }}" alt="" />
+        </figure>
+    </div>
+
+    <figure class="tx-quote">
+        <svg class="tx-quote__mark" width="42" height="34" viewBox="0 0 42 34" aria-hidden="true" focusable="false"><path d="M0 34V19.6C0 13.7 1.3 8.9 3.9 5.3 6.5 1.8 10.4 0 15.5 0v6.6c-2.9 0-5 .9-6.4 2.6-1.3 1.7-2 4.2-2 7.4h9.7V34H0Zm25.8 0V19.6c0-5.9 1.3-10.7 3.9-14.3C32.3 1.8 36.2 0 41.3 0v6.6c-2.9 0-5 .9-6.3 2.6-1.4 1.7-2.1 4.2-2.1 7.4H42V34H25.8Z" /></svg>
+        {# Word-by-word reveal, the granularity the canvas uses here. It fires
+           when the quote scrolls into view, not on load.
+
+           The splitter rebuilds the component's wrappers as it walks the DOM
+           and puts the result inside an aria-hidden <span>; .tx-cms collapses
+           that span along with the wrappers, so the CMS <p> still lays out as
+           a direct child of the blockquote. #}
+        <blockquote class="tx-cms" data-tx-split="words">
+            {% component 'quote' %}
+        </blockquote>
+        <figcaption class="tx-quote__author">
+            <img class="tx-quote__avatar" src="{{ 'assets/images/ana-casino.png'|theme }}" alt="" aria-hidden="true" />
+            <span>
+                <span class="tx-quote__name">Ana Casino</span>
+                <span class="tx-quote__role">Project coordinator</span>
+            </span>
+        </figcaption>
+    </figure>
+
+    {#
+        The "Read more" drawer, same mechanism as the pillars': a native
+        <dialog>, so showModal() supplies the top layer (clearing the fixed
+        header without a z-index fight), Escape, the backdrop and page
+        inertness. assets/js/tettrix.js binds it by id from the trigger's
+        data-tx-dialog.
+
+        Sitting inside .tx-section--dark costs nothing - .tx-drawer is
+        position: fixed and sets its own white background and ink colour, so
+        the section's dark palette does not leak into it.
+
+        The heading is static: the component emits <div> wrappers, which are
+        invalid inside an <h3>, and the entry's own title is an admin label
+        ("FROM TETTRIs TO TETTRIX popup info") rather than display copy.
+    #}
+    <dialog class="tx-drawer" id="tx-about-more" aria-labelledby="tx-about-more-title">
+        <div class="tx-drawer__head">
+            <button type="button" class="tx-drawer__close" data-tx-dialog-close>
+                <span>Close</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"></path></svg>
+            </button>
+        </div>
+        <div class="tx-drawer__body">
+            <h3 class="tx-drawer__title" id="tx-about-more-title">From TETTRIs to TETTRIX</h3>
+            <div class="tx-drawer__text tx-cms">
+                {% component 'about_popup' %}
+            </div>
+        </div>
+    </dialog>
+</section>
+
+{# --------------------------------------------------------------- PILLARS #}
+{#
+    Pillars come from the Pensoft.Initiatives plugin: a category is a pillar,
+    its initiatives are that pillar's outputs. See onStart() above - the card
+    blurb, drawer intro and icon are keyed by category slug there because the
+    plugin does not model them.
+#}
+{% if pillars|length %}
+<section class="tx-section tx-pillars" id="pillars" aria-labelledby="pillars-heading">
+    <div class="tx-inner tx-pillars__inner">
+        <div class="tx-section-head">
+            <h2 class="tx-section-title" id="pillars-heading">TETTRIX Pillars</h2>
+            <div class="tx-section-intro tx-cms">
+                {% component 'pillars_intro' %}
+            </div>
+        </div>
+
+        <div class="tx-pillars__grid">
+            {% for pillar in pillars %}
+            {% set pillar_icon = pillar.cover ? pillar.cover.path : ('assets/images/' ~ (pillar.icon|default('integrate.svg')))|theme %}
+            <article class="tx-card tx-arrow-card">
+                <div class="tx-card__body">
+                    <img class="tx-card__icon" src="{{ pillar_icon }}" alt="" aria-hidden="true" width="46" height="46" />
+                    <div>
+                        <h3 class="tx-card__title">{{ pillar.title }}</h3>
+                        {% if pillar.text %}
+                        <p class="tx-card__text">{{ pillar.text }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="tx-card__foot">
+                    <div class="tx-card__rule"></div>
+                    <div class="tx-card__action">
+                        <span>Explore pillar</span>
+                        <span class="tx-arrow" aria-hidden="true">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l4 4-4 4"></path></svg>
+                        </span>
+                    </div>
+                </div>
+                {# The whole card is the trigger, so it stays one tab stop.
+                   A <button> because it opens a dialog rather than navigating. #}
+                <button type="button"
+                        class="tx-card__link"
+                        data-tx-dialog="tx-pillar-{{ pillar.id }}"
+                        aria-haspopup="dialog">
+                    <span class="sr-only">Explore pillar: {{ pillar.title }}</span>
+                </button>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+
+    {#
+        One drawer per pillar. Native <dialog>: showModal() gives the top
+        layer, Escape, the backdrop and page inertness for free - see
+        .tx-drawer in assets/less/components/tettrix.less.
+    #}
+    {% for pillar in pillars %}
+    <dialog class="tx-drawer" id="tx-pillar-{{ pillar.id }}" aria-labelledby="tx-pillar-{{ pillar.id }}-title">
+        <div class="tx-drawer__head">
+            <button type="button" class="tx-drawer__close" data-tx-dialog-close>
+                <span>Close</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"></path></svg>
+            </button>
+        </div>
+        <div class="tx-drawer__body">
+            <h3 class="tx-drawer__title" id="tx-pillar-{{ pillar.id }}-title">{{ pillar.title }}</h3>
+            {% if pillar.description %}
+            <p class="tx-drawer__text">{{ pillar.description }}</p>
+            {% endif %}
+
+            {% if pillar.items|length %}
+            <p class="tx-drawer__eyebrow">Outputs</p>
+
+            {# Each output expands to reveal its description. Rows with
+               nothing to reveal render as plain, non-interactive items. #}
+            <ul class="tx-acc">
+                {% for item in pillar.items %}
+                {% set has_detail = item.description or item.website %}
+                <li class="tx-acc__item">
+                    {% if has_detail %}
+                    <h4 class="tx-acc__heading">
+                        <button type="button"
+                                class="tx-acc__trigger tx-arrow-card"
+                                id="tx-init-{{ item.id }}-trigger"
+                                aria-expanded="false"
+                                aria-controls="tx-init-{{ item.id }}">
+                            <span class="tx-acc__label">{{ item.title }}</span>
+                            <span class="tx-arrow tx-arrow--md tx-acc__chevron" aria-hidden="true">
+                                <svg width="15" height="15" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l4 4-4 4"></path></svg>
+                            </span>
+                        </button>
+                    </h4>
+                    <div class="tx-acc__panel"
+                         id="tx-init-{{ item.id }}"
+                         role="region"
+                         aria-labelledby="tx-init-{{ item.id }}-trigger">
+                        <div class="tx-acc__panel-inner">
+                            {#
+                                Initiative.description is a richeditor field
+                                (see the plugin's initiative/fields.yaml), so
+                                it holds HTML and has to be printed raw -
+                                escaped, the <p> tags showed up as text.
+
+                                ensure_img_alt is the a11y backstop its own
+                                docblock prescribes for rich text: it fills in
+                                a missing or empty alt on any editor-inserted
+                                <img> (WCAG 1.1.1).
+
+                                A <div>, not a <p>: the stored value is itself
+                                wrapped in <p>, and a browser's parser closes
+                                an open <p> the moment it meets another.
+                            #}
+                            {% if item.description %}
+                            <div class="tx-acc__text tx-cms">{{ item.description|ensure_img_alt|raw }}</div>
+                            {% endif %}
+                            {% if item.website %}
+                            <a class="tx-acc__link" href="{{ item.website }}" target="_blank" rel="noopener noreferrer">
+                                Visit website
+                                <span class="sr-only">: {{ item.title }} (opens in new window)</span>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="tx-acc__static">{{ item.title }}</p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
+    </dialog>
+    {% endfor %}
+</section>
+{% endif %}
+
+{# ----------------------------------------------------- SATELLITE PROJECTS #}
+<section class="tx-section tx-satellites" id="satellites" aria-labelledby="satellites-heading">
+    <div class="tx-inner tx-satellites__inner">
+        <div class="tx-section-head tx-section-head--top">
+            <h2 class="tx-section-title" id="satellites-heading">Satellite<br>projects</h2>
+            <div class="tx-satellites__aside">
+                <div class="tx-copy tx-cms">
+                    {% component 'satellites_intro' %}
+                </div>
+                {# The previous project's awarded satellites, on tettris.eu -
+                   an external site, hence the new window. aria-label carries
+                   the whole name because tettrix.js splits .tx-btn__label
+                   into per-character spans and hides it from assistive tech. #}
+                <a href="https://tettris.eu/awarded-projects"
+                   class="tx-btn"
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   aria-label="Check out the previous Satellites (opens in new window)">
+                    <span class="tx-btn__label">Check out the previous Satellites</span>
+                    <span class="tx-btn__icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+                    </span>
+                </a>
+            </div>
+        </div>
+
+        {# A <div>, not a <p>: the component wraps its body in <div>s, and a
+           browser's parser auto-closes an open <p> the moment it meets one. #}
+        <div class="tx-satellites__note tx-cms">
+            {% component 'calls_note' %}
+        </div>
+
+        <div class="tx-satellites__grid">
+            <article class="tx-satellites__call">
+                <div class="tx-satellites__call-body">
+                    <span class="tx-pill">Call 01</span>
+                    <div>
+                        <h3 class="tx-satellites__call-title">Upgrade of taxonomic capacity</h3>
+                        <div class="tx-satellites__call-text tx-cms">
+                            {% component 'call_01' %}
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="tx-satellites__call">
+                <div class="tx-satellites__call-body">
+                    <span class="tx-pill">Call 02</span>
+                    <div>
+                        <h3 class="tx-satellites__call-title">Enlargement of taxonomic capacity</h3>
+                        <div class="tx-satellites__call-text tx-cms">
+                            {% component 'call_02' %}
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </div>
+</section>
+
+{# ---------------------------------------------------------- FEATURED NEWS #}
+{% if highlights|length %}
+<section class="tx-section tx-featured" id="news" aria-labelledby="featured-heading">
+    <div class="tx-inner tx-featured__inner">
+        <div class="tx-section-head">
+            <h2 class="tx-section-title" id="featured-heading">Featured news</h2>
+            <a href="{{ 'news'|page }}" class="tx-btn">
+                <span class="tx-btn__label">All news</span>
+                <span class="tx-btn__icon" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+                </span>
+            </a>
+        </div>
+
+        <div class="tx-featured__grid">
+            {% for article in highlights %}
+            <article class="tx-news-card tx-arrow-card">
+                <div class="tx-news-card__media">
+                    {% if article.cover %}
+                    <img src="{{ article.cover.path }}" alt="" aria-hidden="true" />
+                    {% endif %}
+                </div>
+                <div class="tx-news-card__body">
+                    <time class="tx-eyebrow" datetime="{{ article.published_at|date('Y-m-d') }}">
+                        {{ article.published_at|date('d F Y') }}
+                    </time>
+                    <h3 class="tx-news-card__title">{{ article.title|striptags }}</h3>
+                    <div class="tx-news-card__foot">
+                        <div class="tx-news-card__rule"></div>
+                        <div class="tx-news-card__action">
+                            <span>Read more</span>
+                            <span class="tx-arrow" aria-hidden="true">
+                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l4 4-4 4"></path></svg>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <a class="tx-news-card__link" href="{{ 'news'|page }}/{{ article.slug }}">
+                    <span class="sr-only">Read more: {{ article.title|striptags }}</span>
+                </a>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------------------- CONSORTIUM #}
+<section class="tx-section tx-section--last tx-consortium" aria-labelledby="consortium-heading">
+    <div class="tx-consortium__inner">
+        <div class="tx-consortium__head">
+            <h2 class="tx-section-title" id="consortium-heading">Consortium</h2>
+            <div class="tx-consortium__text tx-cms">
+                {% component 'consortium_intro' %}
+            </div>
+        </div>
+
+        {% if partners|length %}
+        {#
+            The track is rendered twice: the keyframe translates it by -50%, so
+            the second copy is what makes the loop seamless. The duplicate is
+            decorative, hence aria-hidden on the wrapper and a plain list of
+            names for assistive tech.
+        #}
+        <div class="tx-marquee">
+            <div class="tx-marquee__track">
+                {% for pass in 1..2 %}
+                {% for partner in partners %}
+                {#
+                    The tile is 190x110 with 20px padding, so ~150x70 of logo;
+                    380x220 covers that at 2x. getThumb() short-circuits to the
+                    original for SVG (October's $imageExtensions excludes it),
+                    so this is safe for the mixed svg/png logo set.
+
+                    Only the second pass is hidden from assistive tech, not the
+                    whole track: it is the duplicate that makes the loop
+                    seamless, and every partner would otherwise be announced -
+                    and tabbed through - twice. Its links also get
+                    tabindex="-1", because a focusable element inside
+                    aria-hidden content can be reached by keyboard but never
+                    announced.
+                #}
+                {% set tx_logo = partner.cover.getThumb(380, 220, { mode: 'auto' }) %}
+                {% set tx_name = partner.instituion ?: partner.title %}
+                {% set tx_dup = pass == 2 %}
+
+                <div class="tx-marquee__item {{ partner.instituion_url ? 'tx-marquee__item--link' : '' }}"
+                     {% if tx_dup %}aria-hidden="true"{% endif %}>
+                    {% if partner.instituion_url %}
+                    <a class="tx-marquee__link"
+                       href="{{ partner.instituion_url }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       aria-label="{{ tx_name }} (opens in new window)"
+                       {% if tx_dup %}tabindex="-1"{% endif %}>
+                        <img src="{{ tx_logo }}" alt="" />
+                    </a>
+                    {% else %}
+                    <img src="{{ tx_logo }}" alt="{{ tx_dup ? '' : tx_name }}" />
+                    {% endif %}
+                </div>
+                {% endfor %}
+                {% endfor %}
+            </div>
+            <div class="tx-marquee__fade tx-marquee__fade--left"></div>
+            <div class="tx-marquee__fade tx-marquee__fade--right"></div>
+        </div>
+
+        {# The off-screen name list that used to live here is gone: the first
+           pass of the track is now real, reachable links, so a second copy
+           would announce every partner twice. #}
+        {% endif %}
+    </div>
+</section>

@@ -1,0 +1,146 @@
+url = "/media-center"
+layout = "default"
+title = "Media centre"
+is_hidden = 0
+robot_index = "index"
+robot_follow = "follow"
+==
+<?php
+use Pensoft\Media\Models\MediaLogos;
+use Pensoft\Media\Models\Flyers;
+use Pensoft\Media\Models\Newsletters;
+use Pensoft\Media\Models\Presentations;
+use Pensoft\Media\Models\Pressreleases;
+use Pensoft\Media\Models\Videos;
+use Pensoft\Media\Models\Podcasts;
+use Pensoft\Media\Models\Graphic;
+use System\Models\File;
+
+function onStart(){
+	$this['logos'] =  MediaLogos::get();
+	$this['flyers'] =  Flyers::get();
+	$this['newsletters'] =  Newsletters::get();
+	$this['presentations'] =  Presentations::get();
+	$this['pressreleases'] =  Pressreleases::get();
+	$this['videos'] =  Videos::get();
+	$this['podcasts'] =  Podcasts::get();
+	$this['images'] =  Graphic::get();
+
+
+
+
+}
+
+function onDownloadFile(){
+    $file = File::find(post('id'));
+    $pathToFile = $file->getLocalPath();
+$fileName = $file->file_name;
+$fileType = $file->content_type;
+$headers = [
+'HTTP/1.1 200 OK',
+'Pragma: public',
+'Content-Type: '.$fileType,
+'Content-Type: application/force-download'
+];
+
+return Response::download($pathToFile, $fileName, $headers);
+}
+?>
+==
+<div class="container">
+    <div class="row">
+        {% if logos.count() %}
+        <div class="col-md-4 col-xs-12">
+            <div class="row media-item">
+                <div class="col-md-12 col-xs-12 mb-2 media-cover">
+                    <a href="{{'logo'|page}}">
+                        <img src="{{'1.png'|media}}" alt="">
+                        <div class="btn read-more-btn btn-primary">Open</div>
+                        <div class="blur_filter"></div>
+                        <div class="media-title">Brand Kit</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        {% if podcasts.count() %}
+        <div class="col-md-4 col-xs-12">
+            <div class="row media-item">
+                <div class="col-md-12 col-xs-12 mb-2 media-cover">
+                    <a href="{{'podcasts'|page}}">
+                        <img src="{{'Brand-Kit.png'|media}}" alt="">
+                        <div class="btn read-more-btn btn-primary">Open</div>
+                        <div class="blur_filter"></div>
+                        <div class="media-title">Podcasts</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        {% if flyers.count() %}
+        <div class="col-md-4 col-xs-12">
+            <div class="row media-item">
+                <div class="col-md-12 col-xs-12 mb-2 media-cover">
+                    <a href="/{{currentLang}}/media-center/project-materials">
+                        <img src="{{'2.png'|media}}" alt="">
+                        <div class="btn read-more-btn btn-primary">Open</div>
+                        <div class="blur_filter"></div>
+                        <div class="media-title">Project materials</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        {% if videos.count() %}
+        <div class="col-md-4 col-xs-12">
+            <div class="row media-item">
+                <div class="col-md-12 col-xs-12 mb-2 media-cover">
+                    <a href="{{'videos'|page}}">
+                        <img src="{{'Brand-Kit.png'|media}}" alt="">
+                        <div class="btn read-more-btn btn-primary">Open</div>
+                        <div class="blur_filter"></div>
+                        <div class="media-title">Videos</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+
+        <!--        {% if pressreleases.count() %}-->
+        <!--        <div class="col-md-4 col-xs-12">-->
+        <!--            <div class="row media-item">-->
+        <!--                <div class="col-md-12 col-xs-12 mb-2 media-cover">-->
+        <!--                    <a href="{{'press-releases'|page}}">-->
+        <!--                        <img src="{{'Brand-Kit.png'|media}}" alt="">-->
+        <!--                        <div class="btn read-more-btn btn-primary">Open</div>-->
+        <!--                        <div class="blur_filter"></div>-->
+        <!--                        <div class="media-title">Press releases</div>-->
+        <!--                    </a>-->
+        <!--                </div>-->
+        <!--            </div>-->
+        <!--        </div>-->
+        <!--        {% endif %}-->
+
+        {% if images.count() %}
+        <div class="col-md-4 col-xs-12">
+            <div class="row media-item">
+                <div class="col-md-12 col-xs-12 mb-2 media-cover">
+                    <a href="{{'images'|page}}">
+                        <img src="{{'3.png'|media}}" alt="">
+                        <div class="btn read-more-btn btn-primary">Open</div>
+                        <div class="blur_filter"></div>
+                        <div class="media-title">Images</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
