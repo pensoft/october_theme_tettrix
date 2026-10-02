@@ -50,6 +50,59 @@ background = "transperant"
 templates = "template3"
 description_limit = 0
 
+; Pillar card blurb (`_text`) and drawer intro (`_description`), one pair per
+; Pensoft.Initiatives category. The alias is pillar_<category slug>_<field>
+; (hyphens in the slug become underscores) - onStart() resolves it, so a new
+; pillar only needs a matching pair added here and in seed-jumbotron.sql.
+
+[jumbotron pillar_integrate_text]
+jumbotron = "home-pillar-integrate-text"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillar_integrate_description]
+jumbotron = "home-pillar-integrate-description"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillar_transform_text]
+jumbotron = "home-pillar-transform-text"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillar_transform_description]
+jumbotron = "home-pillar-transform-description"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillar_upskill_text]
+jumbotron = "home-pillar-upskill-text"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillar_upskill_description]
+jumbotron = "home-pillar-upskill-description"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillar_demonstrate_text]
+jumbotron = "home-pillar-demonstrate-text"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
+[jumbotron pillar_demonstrate_description]
+jumbotron = "home-pillar-demonstrate-description"
+background = "transperant"
+templates = "template3"
+description_limit = 0
+
 [jumbotron satellites_intro]
 jumbotron = "home-satellites-intro"
 background = "transperant"
@@ -85,39 +138,48 @@ use Pensoft\Articles\Models\Article;
 use Pensoft\Partners\Models\Partners;
 use Pensoft\Initiatives\Models\Category as PillarCategory;
 use Pensoft\Initiatives\Models\Initiative;
+use Pensoft\Jumbotron\Models\Jumbotron as JumbotronModel;
 
 /**
- * Card blurb, drawer intro and icon per pillar.
+ * Icon per pillar.
  *
- * The Initiatives plugin does not model any of this - pensoft_initiatives_
- * categories is title/slug/sort_order/cover only - so it stays here, keyed by
- * the category slug. Everything else on the Pillars section (titles, the
- * output list and its descriptions) comes from the database.
+ * The Initiatives plugin does not model it - pensoft_initiatives_categories
+ * is title/slug/sort_order/cover only - so it stays here, keyed by the
+ * category slug, and is only used when the category has no cover image.
+ * The card blurb and drawer intro come from Pensoft.Jumbotron (see
+ * pillarComponent() below); titles and outputs come from Initiatives.
  */
-function pillarCopy()
+function pillarIcons()
 {
     return [
-        'integrate' => [
-            'icon' => 'integrate.svg',
-            'text' => 'Connect data, tools, expertise and services through one coherent, accessible infrastructure.',
-            'description' => 'We will connect existing data, tools, expertise, and services through a coherent and accessible infrastructure. This will reduce fragmentation, improve collaboration and interoperability, and make taxonomic information easier to discover, access, and reuse.',
-        ],
-        'transform' => [
-            'icon' => 'transform.svg',
-            'text' => 'Turn species-level information into actionable knowledge for biodiversity, climate and health.',
-            'description' => 'We will turn species-level information into actionable knowledge for biodiversity, climate, and health. By strengthening links between science, policy, and the private sector, we will support evidence-based decision-making, sustainable business practices, and the effective implementation of biodiversity policies and regulations.',
-        ],
-        'upskill' => [
-            'icon' => 'upskill.svg',
-            'text' => 'Equip current and future taxonomists with training, digital skills and new career pathways.',
-            'description' => 'To secure the taxonomic capacity needed for effective biodiversity conservation, we will equip current and future taxonomists with advanced training, digital skills, recognised qualifications, and new career pathways. In doing so, we will strengthen the taxonomic workforce and its capacity to work across disciplines and connected fields of expertise, supporting a broader range of biodiversity challenges and future needs.',
-        ],
-        'demonstrate' => [
-            'icon' => 'demonstrate.svg',
-            'text' => 'Test and validate innovative tools, workflows and training through cascade-funded projects.',
-            'description' => 'Through cascade funding, we will test and validate innovative tools, workflows, and training approaches across priority areas such as dark taxa, climate-indicator taxa, invasive species, and underrepresented taxa and regions, generating evidence and practical solutions that can be adopted and scaled across Europe.',
-        ],
+        'integrate' => 'integrate.svg',
+        'transform' => 'transform.svg',
+        'upskill' => 'upskill.svg',
+        'demonstrate' => 'demonstrate.svg',
     ];
+}
+
+/**
+ * Alias of the [jumbotron pillar_<slug>_<field>] component for one pillar,
+ * or null when there is nothing to render - either no such component is
+ * declared in the INI section above, or its Jumbotron entry is missing or
+ * has an empty body. Returning null lets the markup drop the wrapper
+ * entirely instead of printing an empty <div> (and, for the card, leaving a
+ * 12px gap under the title).
+ *
+ * $filled is the list of Jumbotron slugs that have a body, fetched once by
+ * onStart() rather than one query per pillar and field.
+ */
+function pillarComponent($slug, $field, $filled)
+{
+    $alias = 'pillar_' . str_replace('-', '_', $slug) . '_' . $field;
+    $component = $this->findComponentByName($alias);
+
+    if (!$component || !in_array($component->property('jumbotron'), $filled)) {
+        return null;
+    }
+
+    return $alias;
 }
 
 function onStart()
@@ -148,23 +210,26 @@ function onStart()
     // so the two are fetched separately and joined here.
     // $this-> is required: October wraps a page's code section in a class and
     // rewrites every `function` into `public function` (see
-    // modules/cms/classes/CodeParser.php), so pillarCopy() is a method here,
-    // not a global function.
-    $copy = $this->pillarCopy();
+    // modules/cms/classes/CodeParser.php), so the helpers above are methods
+    // here, not global functions.
+    $icons = $this->pillarIcons();
     $byCategory = Initiative::get()->groupBy('category_id');
+    $filled = JumbotronModel::where('slug', 'like', 'home-pillar-%')
+        ->where('body', '<>', '')
+        ->pluck('slug')
+        ->all();
 
-    $pillars = PillarCategory::get()->map(function ($category) use ($copy, $byCategory) {
+    $pillars = PillarCategory::get()->map(function ($category) use ($icons, $byCategory, $filled) {
         $slug = $category->slug;
-        $meta = isset($copy[$slug]) ? $copy[$slug] : [];
 
         return [
             'id' => $category->id,
             'title' => $category->title,
             'slug' => $slug,
             'cover' => $category->cover,
-            'icon' => isset($meta['icon']) ? $meta['icon'] : null,
-            'text' => isset($meta['text']) ? $meta['text'] : null,
-            'description' => isset($meta['description']) ? $meta['description'] : null,
+            'icon' => isset($icons[$slug]) ? $icons[$slug] : null,
+            'text_component' => $this->pillarComponent($slug, 'text', $filled),
+            'description_component' => $this->pillarComponent($slug, 'description', $filled),
             'items' => $byCategory->get($category->id, collect())->map(function ($item) {
                 return [
                     'id' => $item->id,
@@ -176,18 +241,18 @@ function onStart()
         ];
     })->all();
 
-    // Nothing seeded yet: fall back to the design copy so the section still
-    // renders on a fresh install rather than disappearing.
+    // No categories yet: fall back to the four design pillars so the section
+    // still renders on a fresh install rather than disappearing.
     if (empty($pillars)) {
-        foreach ($copy as $slug => $meta) {
+        foreach ($icons as $slug => $icon) {
             $pillars[] = [
                 'id' => $slug,
                 'title' => ucfirst($slug),
                 'slug' => $slug,
                 'cover' => null,
-                'icon' => $meta['icon'],
-                'text' => $meta['text'],
-                'description' => $meta['description'],
+                'icon' => $icon,
+                'text_component' => $this->pillarComponent($slug, 'text', $filled),
+                'description_component' => $this->pillarComponent($slug, 'description', $filled),
                 'items' => [],
             ];
         }
@@ -363,9 +428,11 @@ function onStart()
 {# --------------------------------------------------------------- PILLARS #}
 {#
     Pillars come from the Pensoft.Initiatives plugin: a category is a pillar,
-    its initiatives are that pillar's outputs. See onStart() above - the card
-    blurb, drawer intro and icon are keyed by category slug there because the
-    plugin does not model them.
+    its initiatives are that pillar's outputs. The card blurb and the drawer
+    intro are Pensoft.Jumbotron entries (home-pillar-<slug>-text and
+    home-pillar-<slug>-description), rendered through the pillar_<slug>_*
+    components declared at the top of this page; onStart() resolves which of
+    them exist and have content.
 #}
 {% if pillars|length %}
 <section class="tx-section tx-pillars" id="pillars" aria-labelledby="pillars-heading">
@@ -385,8 +452,10 @@ function onStart()
                     <img class="tx-card__icon" src="{{ pillar_icon }}" alt="" aria-hidden="true" width="46" height="46" />
                     <div>
                         <h3 class="tx-card__title">{{ pillar.title }}</h3>
-                        {% if pillar.text %}
-                        <p class="tx-card__text">{{ pillar.text }}</p>
+                        {% if pillar.text_component %}
+                        <div class="tx-card__text tx-cms">
+                            {% component pillar.text_component %}
+                        </div>
                         {% endif %}
                     </div>
                 </div>
@@ -427,8 +496,10 @@ function onStart()
         </div>
         <div class="tx-drawer__body">
             <h3 class="tx-drawer__title" id="tx-pillar-{{ pillar.id }}-title">{{ pillar.title }}</h3>
-            {% if pillar.description %}
-            <p class="tx-drawer__text">{{ pillar.description }}</p>
+            {% if pillar.description_component %}
+            <div class="tx-drawer__text tx-cms">
+                {% component pillar.description_component %}
+            </div>
             {% endif %}
 
             {% if pillar.items|length %}
