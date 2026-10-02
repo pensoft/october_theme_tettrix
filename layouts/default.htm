@@ -16,9 +16,14 @@ escape = 1
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     {% component 'SeoCmsPage' %}
-    {% if this.theme.site_icon %}
-    <link rel="icon" type="{{this.theme.site_icon.getContentType()}}" href="{{this.theme.site_icon.getPath()}}">
-    {% endif %}
+    {# Favicon set, generated from the symbol of TETTRIX_Logo_Primary.svg
+       (wordmark dropped). The SVG is for current browsers, the .ico (16/32/48)
+       for the rest; the white-backed PNGs are for iOS home screens and the
+       Android manifest. The Site icon theme setting is no longer used. #}
+    <link rel="icon" href="{{ 'assets/images/favicon/favicon.ico'|theme }}" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="{{ 'assets/images/favicon/favicon.svg'|theme }}">
+    <link rel="apple-touch-icon" href="{{ 'assets/images/favicon/apple-touch-icon.png'|theme }}">
+    <link rel="manifest" href="{{ 'assets/images/favicon/site.webmanifest'|theme }}">
 
     {# TETTRIX runs on Mona Sans (display) + Montserrat (long-form body copy).
        Neither is bundled in assets/fonts, so they come from Google Fonts. #}

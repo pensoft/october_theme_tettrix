@@ -291,7 +291,7 @@ function onStart()
 
         The clips carry data-src, not src, so nothing is downloaded until
         assets/js/tettrix.js decides to play them - it skips them entirely
-        under prefers-reduced-motion, Save-Data and on narrow screens, and
+        under prefers-reduced-motion and Save-Data (phones included), and
         then the image is all there is. The pause button is hidden until the
         clips are running (WCAG 2.2.2).
 
@@ -314,8 +314,7 @@ function onStart()
         (function (media) {
             var mm = window.matchMedia;
             var conn = navigator.connection || {};
-            if (mm && !mm('(prefers-reduced-motion: reduce)').matches &&
-                !mm('(max-width: 767px)').matches && !conn.saveData) {
+            if (mm && !mm('(prefers-reduced-motion: reduce)').matches && !conn.saveData) {
                 media.className += ' is-video-mode';
             }
         })(document.currentScript.previousElementSibling);

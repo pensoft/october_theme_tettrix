@@ -555,8 +555,8 @@
      * buffered yet is simply skipped, so a slow connection lingers on the
      * current clip instead of fading to a blank frame.
      *
-     * Whether to play at all (not under reduced motion, Save-Data or below
-     * 768px) is decided before first paint by the inline script after
+     * Whether to play at all (not under reduced motion or Save-Data; phones
+     * do play) is decided before first paint by the inline script after
      * .tx-hero__media in pages/home.htm, which adds .is-video-mode and so
      * hides the hero image. Without that class the image is the whole
      * background. If the clips fail, or have not started within
