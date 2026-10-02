@@ -14,7 +14,7 @@
 
 .tx-header {
     position: fixed;
-    top: 0;
+    top: @tx-banner-h;
     left: 0;
     right: 0;
     z-index: @zindex-fixed;
@@ -382,5 +382,125 @@
 // inside the header - padding the content instead would leave the banner
 // under the bar and open a 78px gap below it.
 body:not(.tx-has-hero) #layout-header {
-    padding-top: 78px;
+    padding-top: 78px + @tx-banner-h;
+}
+
+// -- Announcement ticker ----------------------------------------------------
+//  partials/site/banner.htm. Pinned above the header, which is why
+//  .tx-header sits at top: @tx-banner-h and the inner-page padding above adds
+//  it on. Same z-index as the header but earlier in the DOM, so the mobile
+//  slide-in panel and the search overlay both paint over it.
+
+.tx-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: @zindex-fixed;
+    display: flex;
+    align-items: center;
+    height: @tx-banner-h;
+    background: @tx-orange;
+    color: @tx-ink;
+    font-family: @tx-font-display;
+    font-size: @tx-label-size;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+
+    &__viewport {
+        flex: 1 1 auto;
+        min-width: 0;
+        height: 100%;
+        overflow: hidden;
+    }
+
+    // Two identical groups; sliding by -50% moves exactly one group's width.
+    &__track {
+        display: flex;
+        width: max-content;
+        height: 100%;
+        animation: tx-banner-scroll 60s linear infinite;
+    }
+
+    &__group {
+        display: flex;
+        flex: 0 0 auto;
+    }
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 0.3em;
+        margin: 0;
+        padding: 0 2.5em 0 0;
+        white-space: nowrap;
+        line-height: @tx-banner-h;
+
+        // Bullet between repeats.
+        &::after {
+            content: "";
+            width: 5px;
+            height: 5px;
+            margin-left: 2.2em;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0.55;
+        }
+
+        a {
+            color: inherit;
+            font-weight: 700;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+
+            &:hover,
+            &:focus {
+                color: @tx-black;
+                text-decoration-thickness: 2px;
+            }
+        }
+    }
+
+    // Hover / keyboard focus hold it still so the link can be hit, and the
+    // button holds it still for good.
+    &:hover &__track,
+    &:focus-within &__track,
+    &.is-paused &__track {
+        animation-play-state: paused;
+    }
+
+    &__toggle {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: @tx-banner-h;
+        height: 100%;
+        padding: 0;
+        border: 0;
+        border-left: 1px solid @tx-ink-18;
+        background: @tx-orange;
+        color: @tx-ink;
+        cursor: pointer;
+        .transition(background @tx-speed ease);
+
+        &:hover,
+        &:focus-visible {
+            background: @tx-orange-hover;
+        }
+
+        &:focus-visible {
+            outline: 2px solid @tx-ink;
+            outline-offset: -4px;
+        }
+    }
+
+    &__icon-play { display: none; }
+    &.is-paused &__icon-pause { display: none; }
+    &.is-paused &__icon-play { display: block; }
+}
+
+@keyframes tx-banner-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
 }

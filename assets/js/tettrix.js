@@ -493,12 +493,44 @@
         }
     }
 
+    /* ------------------------------------------------------------------
+     * Announcement ticker pause/play
+     *
+     * partials/site/banner.htm. The scroll itself is a CSS animation; this
+     * only flips .is-paused and keeps the button's accessible name in step.
+     * Reduced-motion visitors get it paused from the start.
+     * ---------------------------------------------------------------- */
+    function initBanner() {
+        var banner = document.getElementById('tx-banner');
+        var toggle = banner && banner.querySelector('.tx-banner__toggle');
+
+        if (!toggle) {
+            return;
+        }
+
+        function setPaused(paused) {
+            if (paused) {
+                banner.classList.add('is-paused');
+            } else {
+                banner.classList.remove('is-paused');
+            }
+            toggle.setAttribute('aria-label', paused ? 'Play announcement' : 'Pause announcement');
+        }
+
+        setPaused(prefersReducedMotion());
+
+        toggle.addEventListener('click', function () {
+            setPaused(!banner.classList.contains('is-paused'));
+        });
+    }
+
     function init() {
         initButtonLabels();
         initSplitText();
         initScrollReveal();
         initDialogs();
         initAccordions();
+        initBanner();
     }
 
     if (document.readyState === 'loading') {

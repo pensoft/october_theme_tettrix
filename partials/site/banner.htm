@@ -1,0 +1,44 @@
+{#
+    "Under development" ticker pinned above the header.
+
+    The message is repeated so one .tx-banner__group is wider than any
+    viewport, and the track holds two identical groups: the animation slides
+    the track by exactly -50%, so the second group lands where the first
+    started and the loop has no visible seam. Only the very first copy is
+    exposed to assistive tech and the keyboard; every repeat is aria-hidden
+    with its link taken out of the tab order.
+
+    The pause button covers WCAG 2.2.2 (moving content needs a stop control).
+    tettrix.js wires it, and starts paused under prefers-reduced-motion.
+
+    Its height is @tx-banner-h in layout/header.less, which also pushes the
+    fixed header down by the same amount.
+#}
+{% set tx_subscribe = this.theme.subscribe ?: ('home'|page) %}
+{% set tx_repeats = 3 %}
+
+<div class="tx-banner" id="tx-banner" role="region" aria-label="Site announcement">
+    <div class="tx-banner__viewport">
+        <div class="tx-banner__track">
+            {% for group in 1..2 %}
+            <div class="tx-banner__group">
+                {% for n in 1..tx_repeats %}
+                {% set tx_first = group == 1 and loop.first %}
+                <p class="tx-banner__item" {% if not tx_first %}aria-hidden="true"{% endif %}>
+                    The TETTRIX website is under development. Below you can read initial information about the project.
+                    <a href="{{ tx_subscribe }}"
+                       {% if not tx_first %}tabindex="-1"{% endif %}
+                       {% if this.theme.subscribe %}target="_blank" rel="noopener noreferrer"{% endif %}>Subscribe to our newsletter{% if this.theme.subscribe and tx_first %}<span class="sr-only"> (opens in new window)</span>{% endif %}</a>
+                    to stay tuned for updates!
+                </p>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <button type="button" class="tx-banner__toggle" aria-label="Pause announcement">
+        <svg class="tx-banner__icon-pause" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><rect x="2" y="1.5" width="2.6" height="9" rx="0.6" fill="currentColor"/><rect x="7.4" y="1.5" width="2.6" height="9" rx="0.6" fill="currentColor"/></svg>
+        <svg class="tx-banner__icon-play" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3 1.6v8.8a.6.6 0 0 0 .9.5l7-4.4a.6.6 0 0 0 0-1L3.9 1.1a.6.6 0 0 0-.9.5z" fill="currentColor"/></svg>
+    </button>
+</div>
