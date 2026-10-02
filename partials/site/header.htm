@@ -34,10 +34,13 @@ function onSwitchLocale(){
 {#
     TETTRIX header.
 
-    Two states from the canvas: transparent over the homepage hero, and a
-    solid 78px dark bar everywhere else. app.js adds `.scrolled` once the page
-    scrolls past the bar, so the transparent state paints itself in as soon as
-    the hero leaves the viewport.
+    A floating white card, the same on every page (see layout/header.less).
+    `.tx-header--solid` below and the `.scrolled` class app.js adds are kept
+    as hooks but no longer change the look.
+
+    The logo is the dark-wordmark version, since the card is white. A logo
+    uploaded in the theme settings (Site logo) still wins, so it has to be one
+    that reads on white.
 
     id="headernavbar" is required by assets/js/app.js (it reads offsetHeight
     unguarded), and the #menuToggle / .navbar-nav / #mobile-menu-toggle /
@@ -46,7 +49,7 @@ function onSwitchLocale(){
 #}
 {% set tx_hero_pages = ['home'] %}
 {% set tx_has_hero = page_id in tx_hero_pages %}
-{% set tx_logo = this.theme.site_logo ? this.theme.site_logo.getPath() : ('assets/images/tettrix-logo.svg'|theme) %}
+{% set tx_logo = this.theme.site_logo ? this.theme.site_logo.getPath() : ('assets/images/tettrix-logo-dark.png'|theme) %}
 
 <nav id="headernavbar" class="tx-header {{ tx_has_hero ? '' : 'tx-header--solid' }}" aria-label="Main navigation">
 

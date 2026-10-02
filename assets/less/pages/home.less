@@ -35,6 +35,73 @@
         }
     }
 
+    // Set before first paint when the clips are going to play (see the
+    // inline script after .tx-hero__media), so the image never flashes up
+    // ahead of the first clip.
+    &__media.is-video-mode img {
+        visibility: hidden;
+    }
+
+    // Stacked over the image, all transparent; tettrix.js marks one
+    // .is-active at a time and the opacity transition is the crossfade.
+    &__video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+        &.is-active {
+            opacity: 1;
+        }
+    }
+
+    // Pause / play for the clips. Same chip as the social rail, parked in
+    // the bottom-right corner, under the rail.
+    &__video-toggle {
+        position: absolute;
+        right: @tx-gutter;
+        bottom: 48px;
+        z-index: 3;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        border: 0;
+        border-radius: 18px;
+        background: @tx-on-dark-16;
+        color: @tx-white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        .transition(background @tx-speed ease);
+
+        &:hover,
+        &:focus-visible {
+            background: @tx-on-dark-32;
+        }
+
+        &:focus-visible {
+            outline: 2px solid @tx-white;
+            outline-offset: 2px;
+        }
+
+        &[hidden] {
+            display: none;
+        }
+
+        .breakpoint-large-down({
+            right: @tx-gutter-md;
+        });
+    }
+
+    &__icon-play { display: none; }
+    &.is-video-paused &__icon-pause { display: none; }
+    &.is-video-paused &__icon-play { display: block; }
+
     // Two scrims: one left-to-right so the copy holds contrast, one
     // top-and-bottom so the fixed header and the section seam below both sit
     // on darker pixels.
@@ -74,8 +141,10 @@
             right: @tx-gutter-md;
             max-width: none;
         });
+        // Relative rather than static: a static box paints under the
+        // absolutely positioned media and scrims, which hid the title.
         .breakpoint-medium-down({
-            position: static;
+            position: relative;
             padding: 300px @tx-gutter-sm 70px;
             left: auto;
             right: auto;
@@ -154,7 +223,7 @@
     }
 }
 
-// -- From TETTRIs to TETTRIX (dark) -----------------------------------------
+// -- From TETTRIs to TETTRIX ------------------------------------------------
 .tx-about {
 
     // The per-section `.container` padding reset that used to live here is
@@ -170,9 +239,14 @@
         text-align: center;
 
         // The intro copy is CMS-authored (jumbotron `tettris-tettrix`), so it
-        // arrives as a bare <p> with no class to hang the treatment on.
+        // arrives as a bare <p> with no class to hang the treatment on. The
+        // stored body still carries class="tx-copy-dark" from when the section
+        // was dark; this selector out-ranks that class, so the copy reads as
+        // dark-on-white without touching the CMS entry.
         p {
-            .tx-copy-dark();
+            color: @tx-ink-65;
+            font-size: @tx-copy-size;
+            line-height: @tx-copy-lh;
         }
     }
 
@@ -200,7 +274,7 @@
             height: 396px;
             border-radius: @tx-radius;
             overflow: hidden;
-            background: @tx-on-dark-05;
+            background: @tx-ink-06;
 
             .breakpoint-large-down({
                 height: 280px;

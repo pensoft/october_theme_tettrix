@@ -284,9 +284,42 @@ function onStart()
 
 {# ------------------------------------------------------------------ HERO #}
 <section class="tx-hero" aria-labelledby="hero-heading">
-    <div class="tx-hero__media">
+    {#
+        Background: six muted clips crossfading in turn, over the hero image
+        (theme setting Header image, or the bundled fallback), which stays as
+        the poster underneath.
+
+        The clips carry data-src, not src, so nothing is downloaded until
+        assets/js/tettrix.js decides to play them - it skips them entirely
+        under prefers-reduced-motion, Save-Data and on narrow screens, and
+        then the image is all there is. The pause button is hidden until the
+        clips are running (WCAG 2.2.2).
+
+        When the clips will play, the image must not flash up first. The
+        inline script right after the media box makes that call before first
+        paint and adds .is-video-mode, which hides the image (the hero's dark
+        backstop shows until the first clip fades in). tettrix.js reads the
+        same class instead of re-checking, and takes it off again - bringing
+        the image back - if the clips fail or have not started within a few
+        seconds.
+    #}
+    {% set tx_hero_videos = ['hv-1', 'hv-2', 'hv-3', 'hv-3b', 'hv-4', 'hv-5'] %}
+    <div class="tx-hero__media" data-tx-hero-videos>
         <img src="{{ tx_hero_image }}" alt="" aria-hidden="true" />
+        {% for clip in tx_hero_videos %}
+        <video class="tx-hero__video" data-src="{{ ('assets/videos/' ~ clip ~ '.mp4')|theme }}" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+        {% endfor %}
     </div>
+    <script>
+        (function (media) {
+            var mm = window.matchMedia;
+            var conn = navigator.connection || {};
+            if (mm && !mm('(prefers-reduced-motion: reduce)').matches &&
+                !mm('(max-width: 767px)').matches && !conn.saveData) {
+                media.className += ' is-video-mode';
+            }
+        })(document.currentScript.previousElementSibling);
+    </script>
     <div class="tx-hero__scrim tx-hero__scrim--x"></div>
     <div class="tx-hero__scrim tx-hero__scrim--y"></div>
 
@@ -303,6 +336,11 @@ function onStart()
             {% component 'hero_lead' %}
         </div>
     </div>
+
+    <button type="button" class="tx-hero__video-toggle" aria-label="Pause background video" hidden>
+        <svg class="tx-hero__icon-pause" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><rect x="2" y="1.5" width="2.6" height="9" rx="0.6" fill="currentColor"/><rect x="7.4" y="1.5" width="2.6" height="9" rx="0.6" fill="currentColor"/></svg>
+        <svg class="tx-hero__icon-play" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3 1.6v8.8a.6.6 0 0 0 .9.5l7-4.4a.6.6 0 0 0 0-1L3.9 1.1a.6.6 0 0 0-.9.5z" fill="currentColor"/></svg>
+    </button>
 
     {% if this.theme.social_media %}
     <nav class="tx-hero__social tx-social tx-social--rail" aria-label="Social media">
@@ -336,9 +374,9 @@ function onStart()
 </section>
 
 {# --------------------------------------------- FROM TETTRIs TO TETTRIX #}
-<section class="tx-section tx-section--dark tx-about" id="about" aria-labelledby="about-heading">
+<section class="tx-section tx-section--tall tx-about" id="about" aria-labelledby="about-heading">
     <div class="tx-about__head tx-cms">
-        <h2 class="tx-section-title tx-about__title" id="about-heading">FROM TETTRIs TO TETTRIX</h2>
+        <h2 class="tx-section-title tx-about__title" id="about-heading" data-tx-split data-tx-replay>FROM TETTRIs TO TETTRIX</h2>
         {% component 'from' %}
         {# A <button> rather than a link, for the same reason as the pillar
            cards: it opens a dialog instead of navigating. #}
@@ -354,8 +392,8 @@ function onStart()
     </div>
 
     {#
-        Placeholder imagery: the canvas ships empty image slots for this
-        collage. Swap these three files for the final photography.
+        Collage photography from the current canvas
+        (assets/images/about-collage-1..3.webp).
 
         data-tx-reveal scrubs each tile in as you scroll - zoom, un-blur and
         tilt. data-tx-rot/-delay carry the canvas's own per-tile values
@@ -363,13 +401,13 @@ function onStart()
     #}
     <div class="tx-about__collage" aria-hidden="true">
         <figure data-tx-reveal data-tx-rot="-7" data-tx-delay="0">
-            <img src="{{ 'assets/images/1-bear.jpg'|theme }}" alt="" />
+            <img src="{{ 'assets/images/about-collage-1.webp'|theme }}" alt="" />
         </figure>
         <figure data-tx-reveal data-tx-rot="5" data-tx-delay="0.12">
-            <img src="{{ 'assets/images/2-cat.jpg'|theme }}" alt="" />
+            <img src="{{ 'assets/images/about-collage-2.webp'|theme }}" alt="" />
         </figure>
         <figure data-tx-reveal data-tx-rot="-5" data-tx-delay="0.24">
-            <img src="{{ 'assets/images/3-rat.jpg'|theme }}" alt="" />
+            <img src="{{ 'assets/images/about-collage-3.webp'|theme }}" alt="" />
         </figure>
     </div>
 
@@ -401,9 +439,9 @@ function onStart()
         inertness. assets/js/tettrix.js binds it by id from the trigger's
         data-tx-dialog.
 
-        Sitting inside .tx-section--dark costs nothing - .tx-drawer is
+        Sitting inside the section costs nothing - .tx-drawer is
         position: fixed and sets its own white background and ink colour, so
-        the section's dark palette does not leak into it.
+        the section's palette does not leak into it.
 
         The heading is static: the component emits <div> wrappers, which are
         invalid inside an <h3>, and the entry's own title is an admin label
@@ -438,7 +476,7 @@ function onStart()
 <section class="tx-section tx-pillars" id="pillars" aria-labelledby="pillars-heading">
     <div class="tx-inner tx-pillars__inner">
         <div class="tx-section-head">
-            <h2 class="tx-section-title" id="pillars-heading">TETTRIX Pillars</h2>
+            <h2 class="tx-section-title" id="pillars-heading" data-tx-split data-tx-replay>TETTRIX Pillars</h2>
             <div class="tx-section-intro tx-cms">
                 {% component 'pillars_intro' %}
             </div>
@@ -572,7 +610,7 @@ function onStart()
 <section class="tx-section tx-satellites" id="satellites" aria-labelledby="satellites-heading">
     <div class="tx-inner tx-satellites__inner">
         <div class="tx-section-head tx-section-head--top">
-            <h2 class="tx-section-title" id="satellites-heading">Satellite<br>projects</h2>
+            <h2 class="tx-section-title" id="satellites-heading" data-tx-split data-tx-replay>Satellite<br>projects</h2>
             <div class="tx-satellites__aside">
                 <div class="tx-copy tx-cms">
                     {% component 'satellites_intro' %}
@@ -633,7 +671,7 @@ function onStart()
 <section class="tx-section tx-featured" id="news" aria-labelledby="featured-heading">
     <div class="tx-inner tx-featured__inner">
         <div class="tx-section-head">
-            <h2 class="tx-section-title" id="featured-heading">Featured news</h2>
+            <h2 class="tx-section-title" id="featured-heading" data-tx-split data-tx-replay>Featured news</h2>
             <a href="{{ 'news'|page }}" class="tx-btn">
                 <span class="tx-btn__label">All news</span>
                 <span class="tx-btn__icon" aria-hidden="true">
@@ -679,7 +717,7 @@ function onStart()
 <section class="tx-section tx-section--last tx-consortium" aria-labelledby="consortium-heading">
     <div class="tx-consortium__inner">
         <div class="tx-consortium__head">
-            <h2 class="tx-section-title" id="consortium-heading">Consortium</h2>
+            <h2 class="tx-section-title" id="consortium-heading" data-tx-split data-tx-replay>Consortium</h2>
             <div class="tx-consortium__text tx-cms">
                 {% component 'consortium_intro' %}
             </div>

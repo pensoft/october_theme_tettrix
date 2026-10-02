@@ -18,9 +18,15 @@
         padding: 60px @tx-gutter-sm 0;
     });
 
+    // --tall is the dark section's generous rhythm on a white background -
+    // the canvas turned "From TETTRIs to TETTRIX" light but kept its spacing.
     &--dark {
         background: @tx-black;
         color: @tx-white;
+    }
+
+    &--dark,
+    &--tall {
         padding: @tx-section-gap-dark @tx-gutter 190px;
 
         .breakpoint-large-down({
@@ -679,7 +685,7 @@
 
     blockquote {
         margin: 0;
-        color: @tx-on-dark-92;
+        color: @tx-ink;
         font-size: 30px;
         line-height: 44px;
         font-weight: 500;
@@ -707,7 +713,7 @@
 
     &__name {
         display: block;
-        color: @tx-white;
+        color: @tx-ink;
         font-size: @tx-copy-size;
         font-weight: 700;
         text-align: left;
@@ -715,7 +721,7 @@
 
     &__role {
         display: block;
-        color: @tx-on-dark-55;
+        color: @tx-ink-62;
         font-family: @tx-font-body;
         font-size: @tx-label-size;
         text-align: left;

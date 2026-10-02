@@ -208,20 +208,36 @@
     // view on load so it fires on the observer's first callback; the pull
     // quote is ~2000px down, where a load-time reveal would have finished
     // long before anyone scrolled to it.
+    /*
+     * One-shot by default. With data-tx-replay the element goes back to its
+     * start state once it has left the viewport entirely, so the reveal plays
+     * again on the way back - the canvas does this for the section headings
+     * ([data-sh="1"]). The start state has no transition, so the reset is
+     * never seen.
+     */
     function revealOnView(el, cls) {
         if (typeof window.IntersectionObserver !== 'function') {
             el.classList.add(cls);
             return;
         }
 
+        var replay = el.hasAttribute('data-tx-replay');
+
         var io = new window.IntersectionObserver(function (entries) {
             for (var i = 0; i < entries.length; i++) {
-                if (entries[i].isIntersecting) {
-                    entries[i].target.classList.add(cls);
-                    io.unobserve(entries[i].target);
+                var entry = entries[i];
+
+                if (entry.isIntersecting && entry.intersectionRatio >= 0.25) {
+                    entry.target.classList.add(cls);
+
+                    if (!replay) {
+                        io.unobserve(entry.target);
+                    }
+                } else if (replay && !entry.isIntersecting) {
+                    entry.target.classList.remove(cls);
                 }
             }
-        }, { threshold: 0.25, rootMargin: '0px 0px -10% 0px' });
+        }, { threshold: [0, 0.25], rootMargin: '0px 0px -10% 0px' });
 
         io.observe(el);
     }
@@ -524,6 +540,181 @@
         });
     }
 
+    /* ------------------------------------------------------------------
+     * Hero background clips
+     *
+     * Ported from the [data-hv] rotation in the artboard's
+     * componentDidMount(): muted clips stacked over the hero image, one
+     * crossfading to the next every 2s (the fade itself is the 1.4s opacity
+     * transition on .tx-hero__video).
+     *
+     * The canvas sets src + preload="auto" on all six up front, which is
+     * ~80MB before the page is usable. Here the clips carry data-src and are
+     * fetched one after another: the first as soon as possible, each next
+     * one once the previous can play through. A tick whose next clip is not
+     * buffered yet is simply skipped, so a slow connection lingers on the
+     * current clip instead of fading to a blank frame.
+     *
+     * Whether to play at all (not under reduced motion, Save-Data or below
+     * 768px) is decided before first paint by the inline script after
+     * .tx-hero__media in pages/home.htm, which adds .is-video-mode and so
+     * hides the hero image. Without that class the image is the whole
+     * background. If the clips fail, or have not started within
+     * HERO_VIDEO_GRACE, the class comes off and the image returns.
+     * ---------------------------------------------------------------- */
+    var HERO_VIDEO_INTERVAL = 2000;
+    var HERO_VIDEO_FADE = 1400;
+    var HERO_VIDEO_GRACE = 6000;
+
+    function initHeroVideos() {
+        var media = document.querySelector('[data-tx-hero-videos]');
+        var hero = media && (media.closest ? media.closest('.tx-hero') : media.parentNode);
+        var videos = media ? media.querySelectorAll('.tx-hero__video') : [];
+        var toggle = hero && hero.querySelector('.tx-hero__video-toggle');
+        if (!videos.length || !media.classList.contains('is-video-mode')) {
+            return;
+        }
+
+        var current = 0;
+        var timer = null;
+        var paused = false;
+        var started = false;
+
+        // Back to the still image: stop everything and drop the clips.
+        function fallBack() {
+            if (started) {
+                return;
+            }
+
+            started = true;
+            clearTimeout(grace);
+
+            for (var i = 0; i < videos.length; i++) {
+                videos[i].removeAttribute('src');
+                videos[i].load();
+            }
+
+            media.classList.remove('is-video-mode');
+        }
+
+        var grace = setTimeout(fallBack, HERO_VIDEO_GRACE);
+
+        function load(video) {
+            if (!video.getAttribute('src')) {
+                video.muted = true;
+                video.setAttribute('src', video.getAttribute('data-src'));
+                video.preload = 'auto';
+                video.load();
+            }
+        }
+
+        // Each clip starts buffering once the one before it can play through.
+        function loadAfter(index) {
+            var next = videos[index + 1];
+
+            if (!next) {
+                return;
+            }
+
+            videos[index].addEventListener('canplaythrough', function () {
+                load(next);
+                loadAfter(index + 1);
+            }, { once: true });
+        }
+
+        function play(video) {
+            var p = video.play();
+
+            if (p && p.catch) {
+                p.catch(function () {
+                    // Autoplay refused for the first clip: nothing will run.
+                    if (video === videos[0] && !started) {
+                        fallBack();
+                    }
+                });
+            }
+        }
+
+        function advance() {
+            var nextIndex = (current + 1) % videos.length;
+            var next = videos[nextIndex];
+            var prev = videos[current];
+
+            // HAVE_FUTURE_DATA: enough to start without stalling.
+            if (nextIndex === current || next.readyState < 3) {
+                return;
+            }
+
+            try { next.currentTime = 0; } catch (e) {}
+            play(next);
+            next.classList.add('is-active');
+            prev.classList.remove('is-active');
+            current = nextIndex;
+
+            // Stop decoding the outgoing clip once it has faded out.
+            setTimeout(function () {
+                if (videos[current] !== prev) {
+                    prev.pause();
+                }
+            }, HERO_VIDEO_FADE);
+        }
+
+        function start() {
+            if (!timer && videos.length > 1) {
+                timer = setInterval(advance, HERO_VIDEO_INTERVAL);
+            }
+        }
+
+        function stop() {
+            clearInterval(timer);
+            timer = null;
+        }
+
+        function setPaused(value) {
+            paused = value;
+            hero.classList.toggle('is-video-paused', paused);
+            toggle.setAttribute('aria-label', paused ? 'Play background video' : 'Pause background video');
+
+            if (paused) {
+                stop();
+                videos[current].pause();
+            } else {
+                play(videos[current]);
+                start();
+            }
+        }
+
+        var first = videos[0];
+
+        first.addEventListener('error', fallBack, { once: true });
+
+        first.addEventListener('playing', function () {
+            if (started) {
+                return;
+            }
+
+            started = true;
+            clearTimeout(grace);
+            first.classList.add('is-active');
+
+            if (toggle) {
+                toggle.hidden = false;
+            }
+
+            start();
+        }, { once: true });
+
+        load(first);
+        loadAfter(0);
+        play(first);
+
+        if (toggle) {
+            toggle.addEventListener('click', function () {
+                setPaused(!paused);
+            });
+        }
+    }
+
     function init() {
         initButtonLabels();
         initSplitText();
@@ -531,6 +722,7 @@
         initDialogs();
         initAccordions();
         initBanner();
+        initHeroVideos();
     }
 
     if (document.readyState === 'loading') {

@@ -32,7 +32,9 @@ theme = "dark-bottom"
     Contact, and the Get-involved card. Then the EU funding statement and the
     legal row.
 #}
-{% set tx_logo = this.theme.site_logo ? this.theme.site_logo.getPath() : ('assets/images/tettrix-logo.svg'|theme) %}
+{# Always the white-wordmark logo: the footer is dark, and the Site logo theme
+   setting is the header's (dark-on-white) version. #}
+{% set tx_logo = 'assets/images/tettrix-logo-white.png'|theme %}
 {% set tx_flag = footer_funds_flag ? footer_funds_flag : ('assets/images/funded-by-the-eu.png'|theme) %}
 
 <div class="tx-footer">
