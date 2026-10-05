@@ -116,18 +116,16 @@ theme = "dark-bottom"
                     <h2 class="tx-footer__cta-title">Get involved</h2>
                     <p class="tx-footer__cta-text">Calls, results and community news land in the TETTRIX newsletter first.</p>
                 </div>
-                {# Signup URL comes from the theme settings (Subscribe link).
-                   Falls back to the homepage if it is ever cleared, so the
-                   CTA never renders as a dead link.
+                {# Goes to the on-site Newsletter page (pages/newsletter.htm),
+                   which embeds the MailerLite form - same target as the
+                   ticker's subscribe link.
 
                    aria-label carries the whole name because tettrix.js splits
                    .tx-btn__label into per-character spans and hides it from
                    assistive tech. #}
-                {% set tx_subscribe = this.theme.subscribe ?: ('home'|page) %}
-                <a href="{{ tx_subscribe }}"
+                <a href="{{ 'newsletter'|page }}"
                    class="tx-btn tx-btn--block"
-                   {% if this.theme.subscribe %}target="_blank" rel="noopener noreferrer"
-                   aria-label="Subscribe now (opens in new window)"{% endif %}>
+                   aria-label="Subscribe now">
                     <span class="tx-btn__label">Subscribe now</span>
                     <span class="tx-btn__icon" aria-hidden="true">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>

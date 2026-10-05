@@ -1,0 +1,27 @@
+url = "/newsletter"
+layout = "default"
+title = "Newsletter"
+meta_description = "Subscribe to the TETTRIX newsletter to receive the latest results and updates directly in your inbox."
+is_hidden = 0
+robot_index = "index"
+robot_follow = "follow"
+==
+{#
+    Newsletter sign-up. The form is MailerLite's HTML embed, rendered in the
+    page (partials/newsletter-form.htm) rather than in an iframe of the share
+    page, so its container can follow the theme - white instead of the share
+    page's light-blue backdrop. See assets/less/pages/newsletter.less.
+
+    Not to be confused with pages/newsletters.htm, the issue archive under
+    /media-center/newsletters.
+#}
+<div class="tx-page tx-newsletter">
+    <div class="tx-page-head">
+        <h1 class="tx-page-title">Newsletter</h1>
+<!--        <p class="tx-newsletter__lead">Calls, results and community news land in the TETTRIX newsletter first.</p>-->
+    </div>
+
+    <div class="tx-newsletter__form">
+        {% partial 'newsletter-form' %}
+    </div>
+</div>

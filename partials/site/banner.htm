@@ -13,8 +13,11 @@
 
     Its height is @tx-banner-h in layout/header.less, which also pushes the
     fixed header down by the same amount.
+
+    "Subscribe to our newsletter" goes to the on-site Newsletter page
+    (pages/newsletter.htm), which embeds the MailerLite form.
 #}
-{% set tx_subscribe = this.theme.subscribe ?: ('home'|page) %}
+{% set tx_subscribe = 'newsletter'|page %}
 {% set tx_repeats = 3 %}
 
 <div class="tx-banner" id="tx-banner" role="region" aria-label="Site announcement">
@@ -27,8 +30,7 @@
                 <p class="tx-banner__item" {% if not tx_first %}aria-hidden="true"{% endif %}>
                     The TETTRIX website is under development. Below you can read initial information about the project.
                     <a href="{{ tx_subscribe }}"
-                       {% if not tx_first %}tabindex="-1"{% endif %}
-                       {% if this.theme.subscribe %}target="_blank" rel="noopener noreferrer"{% endif %}>Subscribe to our newsletter{% if this.theme.subscribe and tx_first %}<span class="sr-only"> (opens in new window)</span>{% endif %}</a>
+                       {% if not tx_first %}tabindex="-1"{% endif %}>Subscribe to our newsletter</a>
                     to stay tuned for updates!
                 </p>
                 {% endfor %}

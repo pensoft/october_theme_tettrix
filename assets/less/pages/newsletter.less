@@ -1,0 +1,36 @@
+// ===========================================================================
+//  TETTRIX newsletter page (pages/newsletter.htm)
+//  ---------------------------------------------------------------------------
+//  Page head from pages/news.less (.tx-page / .tx-page-head / .tx-page-title),
+//  then the MailerLite form in a frame.
+// ===========================================================================
+
+.tx-newsletter {
+    padding-bottom: 120px;
+
+    .breakpoint-medium-down({
+        padding-bottom: 72px;
+    });
+
+    &__lead {
+        max-width: 560px;
+        margin: 0;
+        color: @tx-ink-65;
+        font-size: 18px;
+        line-height: 29.7px;
+    }
+
+    &__form {
+        max-width: @tx-container;
+        margin: 0 auto;
+    }
+
+    // MailerLite's own stylesheet ships with the embed and styles
+    // everything under #mlb2-45988735; these only override the backdrop.
+    // On the share page the container sat on a #7BC1DC body - here it and
+    // the form card are plain white.
+    .ml-form-embedContainer,
+    .ml-form-embedWrapper {
+        background: @tx-white !important;
+    }
+}
