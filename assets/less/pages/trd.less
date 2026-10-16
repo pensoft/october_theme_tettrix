@@ -1,0 +1,554 @@
+// ===========================================================================
+//  Taxonomy Recognition Day (#NameItToSaveIt)
+//  ---------------------------------------------------------------------------
+//  pages/name-it-to-save-it.htm, plus its promo banner on the homepage
+//  (.tx-trd-promo) and the video modal (.tx-video-modal).
+//
+//  Section order follows the canvas: Hero, How you can participate (steps),
+//  Celebration + stats, Why it matters. Values are the canvas's own; it
+//  spaces every block 110px apart on a 1293px measure.
+// ===========================================================================
+
+.tx-trd {
+    // -- Hero ---------------------------------------------------------------
+    &__hero {
+        padding: 70px @tx-gutter 0;
+        background: @tx-white;
+
+        .breakpoint-large-down({
+            padding: 48px @tx-gutter-md 0;
+        });
+        .breakpoint-medium-down({
+            padding: 32px @tx-gutter-sm 0;
+        });
+    }
+
+    &__hero-inner {
+        max-width: @tx-container;
+        margin: 0 auto;
+
+        > * {
+            max-width: 820px;
+        }
+    }
+
+    &__eyebrow {
+        margin: 0 0 24px;
+        color: @tx-orange;
+        font-family: @tx-font-body;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2.6px;
+        text-transform: uppercase;
+    }
+
+    &__title {
+        margin: 0;
+        font-family: @tx-font-display;
+        font-size: 64px;
+        font-weight: 700;
+        line-height: 68px;
+        letter-spacing: -1.6px;
+        color: @tx-ink;
+
+        em {
+            font-style: normal;
+            color: @tx-orange;
+        }
+
+        .breakpoint-large-down({
+            font-size: 48px;
+            line-height: 52px;
+            letter-spacing: -1px;
+        });
+        .breakpoint-medium-down({
+            font-size: 36px;
+            line-height: 40px;
+            letter-spacing: -0.6px;
+            // #NameItToSaveIt is one long word; let it break rather than
+            // push the page sideways on a phone.
+            overflow-wrap: anywhere;
+        });
+    }
+
+    &__lead {
+        margin-top: 24px;
+        color: @tx-ink-72;
+        font-family: @tx-font-display;
+        font-size: @tx-lead-size;
+        line-height: @tx-lead-lh;
+
+        .breakpoint-medium-down({
+            font-size: 18px;
+            line-height: 29px;
+        });
+    }
+
+    // -- Shared section shell -----------------------------------------------
+    &__section {
+        padding: 110px @tx-gutter 0;
+        background: @tx-white;
+
+        .breakpoint-large-down({
+            padding: 78px @tx-gutter-md 0;
+        });
+        .breakpoint-medium-down({
+            padding: 60px @tx-gutter-sm 0;
+        });
+
+        &--last {
+            padding-bottom: 140px;
+
+            .breakpoint-medium-down({
+                padding-bottom: 80px;
+            });
+        }
+    }
+
+    &__heading {
+        margin: 0;
+        font-family: @tx-font-display;
+        font-size: 40px;
+        font-weight: 600;
+        line-height: 46px;
+        letter-spacing: -0.6px;
+        color: @tx-ink;
+        text-wrap: balance;
+
+        .breakpoint-medium-down({
+            font-size: 30px;
+            line-height: 35px;
+            letter-spacing: -0.4px;
+        });
+    }
+
+    &__copy {
+        color: @tx-ink-72;
+        font-family: @tx-font-body;
+        font-size: 17px;
+        line-height: 31px;
+
+        .breakpoint-medium-down({
+            font-size: 16px;
+            line-height: 28px;
+        });
+    }
+
+    // -- How you can participate ----------------------------------------------
+    &__participate {
+        display: flex;
+        flex-direction: column;
+        gap: 44px;
+    }
+
+    &__steps {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 32px;
+
+        .breakpoint-large-down({
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        });
+        .breakpoint-medium-down({
+            grid-template-columns: minmax(0, 1fr);
+            gap: 40px;
+        });
+    }
+
+    &__step {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 22px;
+
+        // The steps come in one after another (canvas: .15s + i * .35s),
+        // instead of the flat .55s every other data-tx-fade uses.
+        &.tx-fade--ready {
+            transform: translateY(28px);
+        }
+
+        &.tx-fade--in {
+            transform: none;
+            transition:
+                opacity .9s ease,
+                transform .9s @tx-ease;
+            transition-delay: calc(~".15s + var(--tx-i, 0) * .35s");
+        }
+    }
+
+    &__step-media {
+        aspect-ratio: ~"4 / 3";
+        border-radius: @tx-radius-md;
+        overflow: hidden;
+        background: #F1F1F3;
+
+        img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    }
+
+    &__step-body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    // Orange numeral fading out towards its foot - the canvas paints it with
+    // a gradient clipped to the text.
+    &__step-number {
+        align-self: flex-start;
+        font-family: @tx-font-display;
+        font-size: 40px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -2px;
+        color: @tx-orange;
+        background: linear-gradient(180deg, @tx-orange 0%, @tx-orange 22%, fade(@tx-orange, 12%) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    &__step-text {
+        color: @tx-ink;
+        font-family: @tx-font-display;
+        font-size: 20px;
+        font-weight: 500;
+        line-height: 29px;
+
+        .breakpoint-medium-down({
+            font-size: 18px;
+            line-height: 27px;
+        });
+    }
+
+    // -- Celebration + stats ----------------------------------------------------
+    &__celebration {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        column-gap: 72px;
+        align-items: center;
+
+        .breakpoint-large-down({
+            grid-template-columns: minmax(0, 1fr);
+            row-gap: 44px;
+        });
+    }
+
+    &__celebration-copy {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    &__stats {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &__stat {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 24px;
+        padding: 28px 0;
+
+        &:first-child {
+            padding-top: 0;
+        }
+
+        &:last-child {
+            padding-bottom: 0;
+        }
+
+        & + & {
+            border-top: 1px solid @tx-ink-12;
+        }
+    }
+
+    &__stat-caption {
+        margin: 0;
+        color: #828282;
+        font-family: @tx-font-body;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.4px;
+        text-transform: uppercase;
+    }
+
+    &__stat-figure {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+        text-align: right;
+    }
+
+    &__stat-value {
+        color: @tx-orange-hover;
+        font-family: @tx-font-display;
+        font-size: 64px;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -2.4px;
+        font-variant-numeric: tabular-nums;
+
+        .breakpoint-medium-down({
+            font-size: 48px;
+            letter-spacing: -1.6px;
+        });
+    }
+
+    &__stat-unit {
+        color: @tx-ink;
+        font-family: @tx-font-display;
+        font-size: 26px;
+        font-weight: 600;
+        line-height: 32px;
+        letter-spacing: -0.3px;
+
+        .breakpoint-medium-down({
+            font-size: 20px;
+            line-height: 26px;
+        });
+    }
+
+    // -- Why it matters -------------------------------------------------------
+    &__why {
+        border-top: 1px solid rgba(5, 4, 29, 0.14);
+        padding-top: 44px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 72px;
+        align-items: start;
+
+        .breakpoint-large-down({
+            grid-template-columns: minmax(0, 1fr);
+            gap: 24px;
+        });
+    }
+
+    &__why-content {
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+    }
+
+    // First paragraph of the trd-why entry. Italic (or bold) text in it is
+    // the orange half of the sentence.
+    &__statement {
+        color: @tx-ink;
+        font-family: @tx-font-display;
+        font-size: 30px;
+        font-weight: 500;
+        line-height: 40px;
+        letter-spacing: -0.4px;
+
+        em,
+        strong {
+            font-style: normal;
+            font-weight: inherit;
+            color: @tx-orange;
+        }
+
+        .breakpoint-medium-down({
+            font-size: 24px;
+            line-height: 32px;
+        });
+    }
+
+    &__play {
+        align-self: flex-start;
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 22px 13px 18px;
+        border: 0;
+        border-radius: @tx-radius;
+        background: @tx-orange;
+        color: @tx-white;
+        font-family: @tx-font-display;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        text-decoration: none;
+        -webkit-appearance: none;
+        appearance: none;
+        .transition(~"background @{tx-speed} ease, transform @{tx-speed-slow} ease, box-shadow @{tx-speed-slow} ease");
+
+        &:hover,
+        &:focus {
+            background: @tx-orange-hover;
+            color: @tx-white;
+            text-decoration: none;
+            transform: translateY(-2px);
+            .box-shadow(0, 6px, 22px, -4px, rgba(255, 142, 62, .55));
+        }
+
+        // The .tx-btn letter roll: tettrix.js splits the .tx-btn__label
+        // inside this button too, and the split styles themselves come from
+        // .tx-btn__label--split in components/tettrix.less. Only the hover
+        // trigger is scoped to .tx-btn there, so it is restated here.
+        &:hover .tx-btn__label--split > span,
+        &:focus-visible .tx-btn__label--split > span {
+            transform: translateY(-@tx-btn-roll);
+        }
+    }
+}
+
+// -- Video modal --------------------------------------------------------------
+//  Centred player over a dark scrim, from the canvas's videoOpen overlay.
+//  Native <dialog> like .tx-drawer, so the top layer, Escape and the backdrop
+//  come from the browser; tettrix.js opens it, starts the clip
+//  (data-tx-dialog-autoplay) and pauses it on close.
+//
+//  The <dialog> is the player box itself, which is what tettrix.js's
+//  geometric click-outside test expects. overflow is left visible so the
+//  close button can sit above the video.
+.tx-video-modal {
+    width: 1100px;
+    max-width: calc(~"100vw - 96px");
+    margin: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    overflow: visible;
+
+    .breakpoint-medium-down({
+        max-width: calc(~"100vw - 32px");
+    });
+
+    &::backdrop {
+        background: rgba(2, 3, 10, 0.86);
+    }
+
+    &[open] {
+        animation: tx-scrim .3s ease;
+    }
+
+    video {
+        display: block;
+        width: 100%;
+        max-height: 80vh;
+        border-radius: @tx-radius-md;
+        background: #000;
+    }
+
+    &__close {
+        position: absolute;
+        top: -52px;
+        right: 0;
+        width: 40px;
+        height: 40px;
+        border: 0;
+        border-radius: @tx-radius-sm;
+        background: @tx-white;
+        color: @tx-ink;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+}
+
+// -- Homepage promo banner ------------------------------------------------------
+//  The link from the homepage to the TRD page (pages/home.htm, before
+//  Featured news): dark card, copy left, the first step photo right.
+.tx-trd-promo {
+    &__card {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+        border-radius: @tx-radius-xl;
+        overflow: hidden;
+        background: @tx-ink;
+        color: @tx-white;
+
+        .breakpoint-large-down({
+            grid-template-columns: minmax(0, 1fr);
+        });
+    }
+
+    &__body {
+        padding: 56px 60px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 20px;
+
+        .breakpoint-medium-down({
+            padding: 36px 24px;
+        });
+    }
+
+    &__eyebrow {
+        margin: 0;
+        color: @tx-orange;
+        font-family: @tx-font-body;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2.6px;
+        text-transform: uppercase;
+    }
+
+    &__title {
+        margin: 0;
+        font-family: @tx-font-display;
+        font-size: 44px;
+        font-weight: 700;
+        line-height: 48px;
+        letter-spacing: -1px;
+        color: @tx-white;
+
+        em {
+            font-style: normal;
+            color: @tx-orange;
+        }
+
+        .breakpoint-medium-down({
+            font-size: 30px;
+            line-height: 34px;
+            letter-spacing: -0.5px;
+            overflow-wrap: anywhere;
+        });
+    }
+
+    &__text {
+        max-width: 520px;
+        color: @tx-on-dark-78;
+        font-family: @tx-font-body;
+        font-size: @tx-copy-size;
+        line-height: @tx-copy-lh;
+    }
+
+    .tx-btn {
+        margin-top: 8px;
+    }
+
+    &__media {
+        position: relative;
+        min-height: 320px;
+
+        img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .breakpoint-large-down({
+            min-height: 240px;
+        });
+    }
+}

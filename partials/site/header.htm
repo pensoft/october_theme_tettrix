@@ -107,9 +107,10 @@ function onSwitchLocale(){
 </nav>
 
 {#
-    Page banner for the pages that have not been redesigned yet. home and news
-    render their own header treatment (the hero, and the article cover), so
-    they are excluded here.
+    Page banner for the pages that have not been redesigned yet. home, news
+    and name-it-to-save-it render their own header treatment (the hero, the
+    article cover, the Taxonomy Recognition Day hero), so they are excluded
+    here.
 
     The banner heading is the page H1, except on pages that render their own
     (a news/blog/event detail title, or a page-specific heading). There it
@@ -119,7 +120,7 @@ function onSwitchLocale(){
 {% set own_h1_pages = ['contact', '404', 'error', 'search', 'typography'] %}
 {% set detail_pages = ['news', 'blog', 'events'] %}
 {% set page_has_own_h1 = page_id in own_h1_pages or (page_id in detail_pages and (this.param.id or this.param.slug)) %}
-{% set tx_own_header_pages = ['home', 'news'] %}
+{% set tx_own_header_pages = ['home', 'news', 'name-it-to-save-it'] %}
 
 {% if this.theme.header_image and page_id not in tx_own_header_pages %}
 <div class="header-image {{page_id}}">

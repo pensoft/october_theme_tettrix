@@ -1,0 +1,325 @@
+url = "/NameItToSaveIt"
+layout = "default"
+title = "Taxonomy Recognition Day"
+is_hidden = 0
+meta_description = "Join the #NameItToSaveIt movement on Taxonomy Recognition Day: photograph a species, find its scientific name and share it."
+robot_index = "index"
+robot_follow = "follow"
+==
+<?php
+use Pensoft\Jumbotron\Models\Jumbotron as JumbotronModel;
+
+/**
+ * Escapes a plain-text title and wraps every #hashtag in <em>, which the
+ * stylesheet turns orange - the "#NameItToSaveIt" treatment from the canvas,
+ * without asking editors to type HTML into a text field.
+ */
+function trdHashtags($text)
+{
+    return preg_replace('/(#[\p{L}\p{N}_]+)/u', '<em>$1</em>', e($text));
+}
+
+/**
+ * Splits a stat entry's body - "Reaching over <strong>700,000</strong>
+ * people" - into caption, figure and unit. Returns null when there is no
+ * bold figure, so a half-edited entry drops out instead of rendering broken.
+ *
+ * `count` is only set when the figure is a plain number ("700,000", "30"),
+ * which is what the count-up animation can reproduce; anything else ("30+")
+ * renders as static text.
+ */
+function trdStat($body)
+{
+    $html = trim(strip_tags($body, '<strong><b>'));
+
+    if (!preg_match('~^(.*?)<(strong|b)>(.*?)</\2>(.*)$~su', $html, $m)) {
+        return null;
+    }
+
+    $text = function ($s) {
+        // \s with /u also folds the U+00A0 the rich editor saves for &nbsp;.
+        return trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($s), ENT_QUOTES, 'UTF-8')));
+    };
+
+    $value = $text($m[3]);
+
+    return [
+        'caption' => $text($m[1]),
+        'value' => $value,
+        'count' => preg_match('/^\d[\d,]*$/', $value) ? (int) str_replace(',', '', $value) : null,
+        'unit' => $text($m[4]),
+    ];
+}
+
+/**
+ * Creates any TRD Jumbotron entry listed in meta/trd-jumbotron.php that is
+ * missing from the database, so the page has its copy without anyone having
+ * to run seed-jumbotron-trd.sql by hand. Existing entries are left alone -
+ * backend edits always win. One slug lookup per request once they exist.
+ */
+function trdEnsureEntries()
+{
+    $defaults = require \Cms\Classes\Theme::getActiveTheme()->getPath() . '/meta/trd-jumbotron.php';
+    $existing = JumbotronModel::whereIn('slug', array_keys($defaults))->pluck('slug')->all();
+
+    foreach ($defaults as $slug => $fields) {
+        if (in_array($slug, $existing)) {
+            continue;
+        }
+
+        $entry = new JumbotronModel;
+        $entry->slug = $slug;
+        $entry->title = $fields['title'];
+        $entry->body = $fields['body'];
+        $entry->button_name = isset($fields['button_name']) ? $fields['button_name'] : '';
+        $entry->url = isset($fields['url']) ? $fields['url'] : '';
+        $entry->url_target = '_self';
+        // The model has $timestamps = false, so these are set by hand.
+        $entry->created_at = $entry->updated_at = date('Y-m-d H:i:s');
+        $entry->save();
+    }
+}
+
+function onStart()
+{
+    $this->trdEnsureEntries();
+
+    // Everything on this page is a Pensoft.Jumbotron entry with a trd-
+    // slug - see seed-jumbotron-trd.sql in the project root for the full
+    // list and what each field is used for. One query; the template only
+    // reads from $trd.
+    $entries = JumbotronModel::where('slug', 'like', 'trd-%')
+        ->orderBy('slug')
+        ->get()
+        ->keyBy('slug');
+
+    $get = function ($slug) use ($entries) {
+        return $entries->get($slug);
+    };
+
+    $hero = $get('trd-hero');
+    $eyebrow = $get('trd-eyebrow');
+
+    $this['trd_eyebrow'] = $eyebrow ? $eyebrow->title : null;
+    $this['trd_title'] = $hero ? $this->trdHashtags($hero->title) : null;
+    $this['trd_hero'] = $hero;
+    $this['trd_participate'] = $get('trd-participate');
+    $this['trd_celebration'] = $get('trd-celebration');
+    $this['trd_why'] = $why = $get('trd-why');
+
+    // Steps and stats are open-ended: any trd-step-* / trd-stat-* row
+    // renders, in slug order.
+    $steps = [];
+    foreach ($entries as $slug => $entry) {
+        if (strpos($slug, 'trd-step-') !== 0 || trim(strip_tags($entry->body)) === '') {
+            continue;
+        }
+
+        $n = count($steps) + 1;
+
+        // An uploaded image wins (its caption is the alt text); the first
+        // three steps fall back to the photos bundled with the theme, which
+        // are decorative - the step text says the same thing.
+        $steps[] = [
+            'number' => str_pad($n, 2, '0', STR_PAD_LEFT),
+            'body' => $entry->body,
+            'image' => $entry->image ? $entry->image->getPath() : null,
+            'alt' => $entry->image ? (string) $entry->image->title : '',
+            'fallback' => !$entry->image && $n <= 3 ? 'assets/images/trd-step-' . $n . '.webp' : null,
+        ];
+    }
+    $this['trd_steps'] = $steps;
+
+    $stats = [];
+    foreach ($entries as $slug => $entry) {
+        if (strpos($slug, 'trd-stat-') === 0 && ($stat = $this->trdStat($entry->body))) {
+            $stats[] = $stat;
+        }
+    }
+    $this['trd_stats'] = $stats;
+
+    // "Why it matters": the first paragraph of the body is the large
+    // statement, the rest is body copy.
+
+    $statement = null;
+    $whyBody = null;
+    if ($why && trim($why->body) !== '') {
+        if (preg_match('~^\s*(<p\b[^>]*>.*?</p>)(.*)$~si', $why->body, $m)) {
+            $statement = $m[1];
+            $whyBody = trim($m[2]);
+        } else {
+            $whyBody = $why->body;
+        }
+    }
+    $this['trd_why_statement'] = $statement;
+    $this['trd_why_body'] = $whyBody;
+
+    // A direct video file plays in the modal; any other URL (YouTube, Vimeo,
+    // a news item...) is an ordinary link.
+    $url = $why ? trim((string) $why->url) : '';
+    $this['trd_video'] = $url !== '' && preg_match('~\.(mp4|webm|ogg)(\?.*)?$~i', $url) ? $url : null;
+    $this['trd_video_link'] = $url !== '' && !$this['trd_video'] ? $url : null;
+}
+?>
+==
+{#
+    Taxonomy Recognition Day / #NameItToSaveIt - implements the "Taxonomy
+    Recognition Day" design canvas.
+
+    Section order: Hero, How you can participate (steps), Celebration + stats,
+    Why it matters (+ video modal).
+
+    All copy is CMS-driven: onStart() reads the trd-* Pensoft.Jumbotron
+    entries in one query (seeded by seed-jumbotron-trd.sql) and the template
+    prints their fields directly, so headings stay real headings without the
+    component's <div> wrappers. Any block whose entry is missing or empty is
+    simply left out.
+
+    The old page banner is skipped for this page (tx_own_header_pages in
+    partials/site/header.htm) - the hero below carries the H1.
+#}
+
+{# ------------------------------------------------------------------ HERO #}
+<section class="tx-trd__hero" aria-labelledby="trd-heading">
+    <div class="tx-trd__hero-inner">
+        {% if trd_eyebrow %}
+        <p class="tx-trd__eyebrow">{{ trd_eyebrow }}</p>
+        {% endif %}
+        <h1 class="tx-trd__title" id="trd-heading" data-tx-split>
+            {{ trd_title ? trd_title|raw : this.page.title }}
+        </h1>
+        {% if trd_hero and trd_hero.body %}
+        <div class="tx-trd__lead tx-cms" data-tx-fade>
+            {{ trd_hero.body|ensure_img_alt|raw }}
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{# -------------------------------------------------- HOW YOU CAN PARTICIPATE #}
+{% if trd_steps|length %}
+<section class="tx-trd__section" aria-labelledby="trd-participate-heading">
+    <div class="tx-inner tx-trd__participate">
+        {% if trd_participate %}
+        <h2 class="tx-trd__heading" id="trd-participate-heading" data-tx-split data-tx-replay>{{ trd_participate.title }}</h2>
+        {% endif %}
+
+        <ol class="tx-trd__steps">
+            {% for step in trd_steps %}
+            <li class="tx-trd__step" data-tx-fade style="--tx-i: {{ loop.index0 }}">
+                <div class="tx-trd__step-media">
+                    {% if step.image %}
+                    <img src="{{ step.image }}" alt="{{ step.alt }}" loading="lazy" />
+                    {% elseif step.fallback %}
+                    <img src="{{ step.fallback|theme }}" alt="" loading="lazy" />
+                    {% endif %}
+                </div>
+                <div class="tx-trd__step-body">
+                    <span class="tx-trd__step-number" aria-hidden="true">{{ step.number }}</span>
+                    <div class="tx-trd__step-text tx-cms">
+                        {{ step.body|ensure_img_alt|raw }}
+                    </div>
+                </div>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
+{% endif %}
+
+{# ------------------------------------------------- CELEBRATION + STATS #}
+{% if trd_celebration or trd_stats|length %}
+<section class="tx-trd__section" aria-labelledby="trd-celebration-heading">
+    <div class="tx-inner tx-trd__celebration">
+        <div class="tx-trd__celebration-copy">
+            {% if trd_celebration %}
+            <h2 class="tx-trd__heading" id="trd-celebration-heading" data-tx-split data-tx-replay>{{ trd_celebration.title }}</h2>
+            {% if trd_celebration.body %}
+            <div class="tx-trd__copy tx-cms">
+                {{ trd_celebration.body|ensure_img_alt|raw }}
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+
+        {% if trd_stats|length %}
+        {# A <dl>: caption + unit are the term, the figure is its value.
+           The count-up (data-tx-count, assets/js/tettrix.js) only rewrites
+           the digits; the final figure is in the markup, so without JS - or
+           under reduced motion - it is what shows. #}
+        <dl class="tx-trd__stats">
+            {% for stat in trd_stats %}
+            <div class="tx-trd__stat">
+                <dt class="tx-trd__stat-caption">{{ stat.caption }}</dt>
+                <dd class="tx-trd__stat-figure">
+                    <span class="tx-trd__stat-value"
+                          {% if stat.count is not null %}data-tx-count="{{ stat.count }}"{% endif %}>{{ stat.value }}</span>
+                    {% if stat.unit %}
+                    <span class="tx-trd__stat-unit">{{ stat.unit }}</span>
+                    {% endif %}
+                </dd>
+            </div>
+            {% endfor %}
+        </dl>
+        {% endif %}
+    </div>
+</section>
+{% endif %}
+
+{# --------------------------------------------------------- WHY IT MATTERS #}
+{% if trd_why %}
+<section class="tx-trd__section tx-trd__section--last" aria-labelledby="trd-why-heading">
+    <div class="tx-inner tx-trd__why">
+        <h2 class="tx-trd__heading" id="trd-why-heading" data-tx-split data-tx-replay>{{ trd_why.title }}</h2>
+
+        <div class="tx-trd__why-content">
+            {% if trd_why_statement %}
+            <div class="tx-trd__statement tx-cms">{{ trd_why_statement|ensure_img_alt|raw }}</div>
+            {% endif %}
+            {% if trd_why_body %}
+            <div class="tx-trd__copy tx-cms">{{ trd_why_body|ensure_img_alt|raw }}</div>
+            {% endif %}
+
+            {% set trd_video_label = trd_why.button_name ?: 'Watch video' %}
+            {% if trd_video %}
+            {# A <button>: it opens a dialog rather than navigating. #}
+            <button type="button"
+                    class="tx-trd__play"
+                    data-tx-dialog="trd-video"
+                    aria-haspopup="dialog">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M3.5 1.8v10.4c0 .5.6.8 1 .5l8-5.2c.4-.3.4-.8 0-1.1l-8-5.2c-.4-.2-1 .1-1 .6Z"></path></svg>
+                <span class="tx-btn__label">{{ trd_video_label }}</span>
+            </button>
+            {% elseif trd_video_link %}
+            {% set trd_new_window = trd_why.url_target == '_blank' %}
+            <a class="tx-trd__play"
+               href="{{ trd_video_link }}"
+               {% if trd_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M3.5 1.8v10.4c0 .5.6.8 1 .5l8-5.2c.4-.3.4-.8 0-1.1l-8-5.2c-.4-.2-1 .1-1 .6Z"></path></svg>
+                {# The sr-only note sits outside the label: tettrix.js splits
+                   the label's whole text into visible letters. #}
+                <span class="tx-btn__label">{{ trd_video_label }}</span>
+                {% if trd_new_window %}<span class="sr-only"> (opens in new window)</span>{% endif %}
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if trd_video %}
+    {#
+        Same native-<dialog> mechanism as the homepage drawers (tettrix.js
+        binds it from the trigger's data-tx-dialog): Escape, the backdrop and
+        focus return come for free. data-tx-dialog-autoplay starts the clip
+        when the dialog opens; tettrix.js pauses any video inside a dialog
+        when it closes. preload="none" keeps the 18MB file off the wire until
+        someone asks for it.
+    #}
+    <dialog class="tx-video-modal" id="trd-video" aria-label="{{ trd_video_label }}" data-tx-dialog-autoplay>
+        <button type="button" class="tx-video-modal__close" data-tx-dialog-close aria-label="Close video">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="M3 3l10 10M13 3L3 13"></path></svg>
+        </button>
+        <video src="{{ trd_video }}" controls playsinline preload="none"></video>
+    </dialog>
+    {% endif %}
+</section>
+{% endif %}

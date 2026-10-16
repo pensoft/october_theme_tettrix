@@ -70,7 +70,9 @@
             return;
         }
 
-        var labels = document.querySelectorAll('.tx-btn > .tx-btn__label');
+        // .tx-trd__play is the TRD "Watch video" button, which has its own
+        // shape but the same label roll.
+        var labels = document.querySelectorAll('.tx-btn > .tx-btn__label, .tx-trd__play > .tx-btn__label');
 
         for (var i = 0; i < labels.length; i++) {
             splitLabel(labels[i]);
@@ -425,6 +427,13 @@
 
         // Fires for the close button, Escape and the backdrop alike.
         dialog.addEventListener('close', function () {
+            // A video modal must not keep playing behind the page.
+            var videos = dialog.querySelectorAll('video');
+
+            for (var v = 0; v < videos.length; v++) {
+                videos[v].pause();
+            }
+
             if (lastTrigger) {
                 lastTrigger.focus();
                 lastTrigger = null;
@@ -461,6 +470,20 @@
                     event.preventDefault();
                     lastTrigger = trigger;
                     dialog.showModal();
+
+                    // data-tx-dialog-autoplay: start the dialog's video on
+                    // open (the TRD "Watch video" modal). The click is the
+                    // user gesture, so play() with sound is allowed.
+                    var video = dialog.hasAttribute('data-tx-dialog-autoplay') &&
+                        dialog.querySelector('video');
+
+                    if (video) {
+                        var p = video.play();
+
+                        if (p && typeof p.catch === 'function') {
+                            p.catch(function () {});
+                        }
+                    }
                 });
             })(triggers[i]);
         }
@@ -507,6 +530,78 @@
                 });
             })(triggers[i]);
         }
+    }
+
+    /* ------------------------------------------------------------------
+     * Count-up figures ([data-tx-count])
+     *
+     * Ported from count() in the Taxonomy Recognition Day canvas: the
+     * figure eases (cubic out, 1.8s) up to its value once the first one
+     * scrolls into view, all of them together. The final figure is already
+     * in the markup, so without JS or under reduced motion nothing changes.
+     *
+     * Large figures start from 90% of the target rather than 0 - the canvas
+     * runs 640,000 -> 700,000 - so a six-digit number does not spend the
+     * whole animation as an unreadable blur.
+     * ---------------------------------------------------------------- */
+    function initCounters() {
+        var counters = document.querySelectorAll('[data-tx-count]');
+
+        if (!counters.length || prefersReducedMotion() ||
+            typeof window.IntersectionObserver !== 'function') {
+            return;
+        }
+
+        function fmt(v) {
+            return Math.round(v).toLocaleString('en-US');
+        }
+
+        function from(to) {
+            return to >= 1000 ? Math.round(to * 0.9) : 0;
+        }
+
+        function run(el) {
+            var to = parseInt(el.getAttribute('data-tx-count'), 10);
+            var start = from(to);
+            var t0 = null;
+
+            function step(t) {
+                if (t0 === null) {
+                    t0 = t;
+                }
+
+                var k = Math.min(1, (t - t0) / 1800);
+                var e = 1 - Math.pow(1 - k, 3);
+
+                el.textContent = fmt(start + (to - start) * e);
+
+                if (k < 1) {
+                    requestAnimationFrame(step);
+                }
+            }
+
+            requestAnimationFrame(step);
+        }
+
+        for (var i = 0; i < counters.length; i++) {
+            counters[i].textContent = fmt(from(parseInt(counters[i].getAttribute('data-tx-count'), 10)));
+        }
+
+        var io = new window.IntersectionObserver(function (entries) {
+            for (var n = 0; n < entries.length; n++) {
+                if (entries[n].isIntersecting) {
+                    io.disconnect();
+                    setTimeout(function () {
+                        for (var c = 0; c < counters.length; c++) {
+                            run(counters[c]);
+                        }
+                    }, 250);
+                    return;
+                }
+            }
+        }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
+
+        io.observe(counters[0]);
     }
 
     /* ------------------------------------------------------------------
@@ -721,6 +816,7 @@
         initScrollReveal();
         initDialogs();
         initAccordions();
+        initCounters();
         initBanner();
         initHeroVideos();
     }

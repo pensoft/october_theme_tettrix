@@ -182,8 +182,57 @@ function pillarComponent($slug, $field, $filled)
     return $alias;
 }
 
+/**
+ * Escapes a plain-text title and wraps every #hashtag in <em> - the orange
+ * "#NameItToSaveIt" treatment. Same helper as pages/name-it-to-save-it.htm.
+ */
+function trdHashtags($text)
+{
+    return preg_replace('/(#[\p{L}\p{N}_]+)/u', '<em>$1</em>', e($text));
+}
+
+/**
+ * Creates any TRD Jumbotron entry from meta/trd-jumbotron.php that is
+ * missing, so the banner shows without seed-jumbotron-trd.sql being run by
+ * hand. Never touches existing entries. Same helper as
+ * pages/name-it-to-save-it.htm.
+ */
+function trdEnsureEntries()
+{
+    $defaults = require \Cms\Classes\Theme::getActiveTheme()->getPath() . '/meta/trd-jumbotron.php';
+    $existing = JumbotronModel::whereIn('slug', array_keys($defaults))->pluck('slug')->all();
+
+    foreach ($defaults as $slug => $fields) {
+        if (in_array($slug, $existing)) {
+            continue;
+        }
+
+        $entry = new JumbotronModel;
+        $entry->slug = $slug;
+        $entry->title = $fields['title'];
+        $entry->body = $fields['body'];
+        $entry->button_name = isset($fields['button_name']) ? $fields['button_name'] : '';
+        $entry->url = isset($fields['url']) ? $fields['url'] : '';
+        $entry->url_target = '_self';
+        // The model has $timestamps = false, so these are set by hand.
+        $entry->created_at = $entry->updated_at = date('Y-m-d H:i:s');
+        $entry->save();
+    }
+}
+
 function onStart()
 {
+    // Taxonomy Recognition Day banner, linking to /NameItToSaveIt. Copy and
+    // link are the home-trd-banner Jumbotron entry, the eyebrow is shared
+    // with the TRD page (trd-eyebrow) - see meta/trd-jumbotron.php. No entry,
+    // or an empty url, and the banner is not rendered.
+    $this->trdEnsureEntries();
+    $trd = JumbotronModel::whereIn('slug', ['home-trd-banner', 'trd-eyebrow'])->get()->keyBy('slug');
+    $banner = $trd->get('home-trd-banner');
+    $this['trd_banner'] = $banner && trim((string) $banner->url) !== '' ? $banner : null;
+    $this['trd_banner_title'] = $banner ? $this->trdHashtags($banner->title) : null;
+    $this['trd_banner_eyebrow'] = $trd->get('trd-eyebrow') ? $trd->get('trd-eyebrow')->title : null;
+
     // Featured news strip - three most recent published items.
     $this['highlights'] = Article::news()
         ->where('published', 'true')
@@ -266,7 +315,7 @@ function onStart()
     TETTRIX homepage - implements design/TETTRIX Homepage.dc.html.
 
     Section order: Hero, From TETTRIs to TETTRIX (dark), Pillars, Satellite
-    projects, Featured news, Consortium.
+    projects, Taxonomy Recognition Day banner, Featured news, Consortium.
 
     The body copy is CMS-driven: every prose block is a Pensoft.Jumbotron
     entry, wired up in the configuration section above and seeded by
@@ -664,6 +713,50 @@ function onStart()
         </div>
     </div>
 </section>
+
+{# ------------------------------------------- TAXONOMY RECOGNITION DAY #}
+{#
+    Promo banner for pages/name-it-to-save-it.htm. Everything in it is the
+    home-trd-banner Jumbotron entry (title, body, button name, url, image)
+    plus the shared trd-eyebrow label; onStart() drops it when the entry is
+    missing or has no url. The photo falls back to the TRD page's first step
+    image when the entry has none uploaded.
+#}
+{% if trd_banner %}
+{% set trd_banner_image = trd_banner.image ? trd_banner.image.getPath() : 'assets/images/trd-step-1.webp'|theme %}
+{% set trd_banner_new_window = trd_banner.url_target == '_blank' %}
+<section class="tx-section tx-trd-promo" id="taxonomy-recognition-day" aria-labelledby="trd-promo-heading">
+    <div class="tx-inner">
+        <div class="tx-trd-promo__card">
+            <div class="tx-trd-promo__body">
+                {% if trd_banner_eyebrow %}
+                <p class="tx-trd-promo__eyebrow">{{ trd_banner_eyebrow }}</p>
+                {% endif %}
+                <h2 class="tx-trd-promo__title" id="trd-promo-heading">{{ trd_banner_title|raw }}</h2>
+                {% if trd_banner.body %}
+                <div class="tx-trd-promo__text tx-cms">
+                    {{ trd_banner.body|ensure_img_alt|raw }}
+                </div>
+                {% endif %}
+                {# aria-label carries the full name: tettrix.js splits
+                   .tx-btn__label into per-character spans. #}
+                <a href="{{ trd_banner.url }}"
+                   class="tx-btn"
+                   {% if trd_banner_new_window %}target="_blank" rel="noopener noreferrer"{% endif %}
+                   aria-label="{{ trd_banner.button_name ?: 'Find out more' }}{{ trd_banner_new_window ? ' (opens in new window)' : '' }}">
+                    <span class="tx-btn__label">{{ trd_banner.button_name ?: 'Find out more' }}</span>
+                    <span class="tx-btn__icon" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.53" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.3L10.2 8l-4.7 4.7"></path></svg>
+                    </span>
+                </a>
+            </div>
+            <div class="tx-trd-promo__media" aria-hidden="true">
+                <img src="{{ trd_banner_image }}" alt="" loading="lazy" />
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
 
 {# ---------------------------------------------------------- FEATURED NEWS #}
 {% if highlights|length %}
