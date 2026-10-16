@@ -520,17 +520,16 @@
         letter-spacing: -1px;
         color: @tx-white;
 
-        // The hashtag runs through the logo's three colours - orange, blue,
-        // green, as in the primary logo mark (images/favicon/favicon.svg).
-        // The green is the logo's light tint (#BBFFB3) rather than its dark
-        // #24624B, which would drop below 3:1 against the ink card.
+        // The hashtag runs through the three colours of the primary logo mark
+        // (images/favicon/favicon.svg, tettrix-logo-white.png): orange, blue,
+        // green - exact values, as the designer asked.
         // inline-block keeps the gradient spanning the whole word even when
         // it wraps onto its own line.
         em {
             display: inline-block;
             font-style: normal;
             color: @tx-orange;
-            background: linear-gradient(90deg, #F68E43 0%, #7CC2DC 55%, #BBFFB3 100%);
+            background: linear-gradient(90deg, #F68E43 0%, #7CC2DC 50%, #24624B 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
