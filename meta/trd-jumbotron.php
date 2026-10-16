@@ -57,7 +57,7 @@ return [
     'home-trd-banner' => [
         'title' => 'Join the #NameItToSaveIt Movement',
         'body' => '<p>Every species has a story—but without a name, that story may never be told. Snap a photo, find its scientific name and share it with #NameItToSaveIt.</p>',
-        'button_name' => 'Find out how to take part',
+        'button_name' => 'Find out more',
         'url' => '/NameItToSaveIt',
     ],
 ];

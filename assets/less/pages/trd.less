@@ -222,6 +222,12 @@
         font-weight: 500;
         line-height: 29px;
 
+        // themes/master.less sets every <p> to 300, which would override the
+        // weight above on the CMS paragraph.
+        p {
+            font-weight: inherit;
+        }
+
         .breakpoint-medium-down({
             font-size: 18px;
             line-height: 27px;
@@ -351,6 +357,12 @@
         font-weight: 500;
         line-height: 40px;
         letter-spacing: -0.4px;
+
+        // Medium. themes/master.less sets every <p> to 300 (Light), which
+        // otherwise wins over the weight above on the CMS paragraph.
+        p {
+            font-weight: inherit;
+        }
 
         em,
         strong {
@@ -508,9 +520,20 @@
         letter-spacing: -1px;
         color: @tx-white;
 
+        // The hashtag runs through the logo's three colours - orange, blue,
+        // green, as in the primary logo mark (images/favicon/favicon.svg).
+        // The green is the logo's light tint (#BBFFB3) rather than its dark
+        // #24624B, which would drop below 3:1 against the ink card.
+        // inline-block keeps the gradient spanning the whole word even when
+        // it wraps onto its own line.
         em {
+            display: inline-block;
             font-style: normal;
             color: @tx-orange;
+            background: linear-gradient(90deg, #F68E43 0%, #7CC2DC 55%, #BBFFB3 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .breakpoint-medium-down({
@@ -545,6 +568,23 @@
             height: 100%;
             object-fit: cover;
             display: block;
+        }
+
+        // Dark overlay: solid ink where the photo meets the copy, easing off
+        // across the image. Runs top-down once the card stacks.
+        &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, @tx-ink 0%, fade(@tx-ink, 55%) 40%, fade(@tx-ink, 15%) 100%);
+            pointer-events: none;
+
+            .breakpoint-large-down({
+                background: linear-gradient(180deg, @tx-ink 0%, fade(@tx-ink, 55%) 40%, fade(@tx-ink, 15%) 100%);
+            });
         }
 
         .breakpoint-large-down({
